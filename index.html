@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuProfe20 Lab: Multiplicación de números decimales y aplicaciones</title>
+
+    <!-- Tailwind CSS, React 18, ReactDOM y Babel -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- KaTeX para fórmulas matemáticas nítidas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100dvh;
+            user-select: none;
+            font-family: 'Nunito', sans-serif;
+        }
+        .font-fun { font-family: 'Nunito', sans-serif; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(105vh) rotate(0deg); }
+            100% { transform: translateY(-105vh) rotate(360deg); }
+        }
+        @keyframes slideInRight {
+            0% { opacity: 0; transform: translateX(16px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes svgPop {
+            0% { opacity: 0; transform: scale(0.65); }
+            70% { opacity: 1; transform: scale(1.06); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes drawArc {
+            from { stroke-dashoffset: 180; }
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes commaPulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.85)); }
+            50% { filter: drop-shadow(0 0 14px rgba(220, 38, 38, 1)); }
+        }
+        @keyframes robotFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes robotThinkTilt {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(6deg) translateY(-3px); }
+        }
+        @keyframes robotJump {
+            0%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-14px); }
+        }
+        @keyframes robotTalkArmL {
+            0%, 100% { transform: rotate(45deg); }
+            50% { transform: rotate(95deg); }
+        }
+        @keyframes robotTalkArmR {
+            0%, 100% { transform: rotate(-45deg); }
+            50% { transform: rotate(-95deg); }
+        }
+        @keyframes confettiExplosion {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; }
+        }
+        @keyframes finalGlow {
+            0%, 100% { background-color: rgba(254, 240, 138, 0.35); }
+            50% { background-color: rgba(253, 224, 71, 0.68); }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none !important; }
+        .scrollbar-hide { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+
+        .animate-floatUp { animation: floatUp linear infinite; }
+        .animate-slideInRight { animation: slideInRight 0.35s ease-out forwards; }
+        .animate-robotFloat { animation: robotFloat 3s ease-in-out infinite; }
+        .animate-robotThinkTilt { animation: robotThinkTilt 2s ease-in-out infinite; }
+        .animate-robotJump { animation: robotJump 1s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; }
+        .animate-robotTalkArmL { animation: robotTalkArmL 0.6s ease-in-out infinite; }
+        .animate-robotTalkArmR { animation: robotTalkArmR 0.6s ease-in-out infinite 0.1s; }
+        .animate-confettiExplosion { animation: confettiExplosion 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .animate-finalGlow { animation: finalGlow 2s ease-in-out infinite; }
+        .animate-commaPulse { animation: commaPulse 1.3s ease-in-out infinite; }
+
+        .svg-pop {
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: svgPop 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        .arc-draw {
+            stroke-dasharray: 180;
+            stroke-dashoffset: 180;
+            animation: drawArc 0.45s ease-out forwards;
+        }
+
+        /* Estilos KaTeX nítidos y responsivos */
+        .katex { font-weight: 800 !important; }
+        .katex-display { margin: 0 !important; padding: 0 !important; }
+        .math-card .katex { font-size: clamp(0.84rem, 1.2vw, 1.08rem) !important; color: #0f172a !important; }
+        .math-enunciado .katex { font-size: clamp(1rem, 1.5vw, 1.32rem) !important; color: #fde047 !important; }
+        .math-current .katex { font-size: clamp(1rem, 1.48vw, 1.42rem) !important; color: #0f172a !important; }
+        .math-final .katex { font-size: clamp(1.06rem, 1.58vw, 1.5rem) !important; color: #065f46 !important; }
+        .math-history .katex { font-size: clamp(0.86rem, 1.18vw, 1.16rem) !important; color: #475569 !important; }
+
+        .math-flow-line {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            padding: 0.18rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, memo } = React;
+
+        // =========================================================================
+        // 1. ICONOS SVG INLINE
+        // =========================================================================
+        const Icon = ({ paths, className = "", size = 24, fill = "none", strokeWidth = "2.5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: paths }} />
+        );
+
+        const VolumeX = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>' />;
+        const Volume2 = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' />;
+        const Rocket = (p) => <Icon {...p} paths='<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>' />;
+        const Sparkles = (p) => <Icon {...p} paths='<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 3v4"/><path d="M17 5h4"/>' />;
+        const Home = (p) => <Icon {...p} paths='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+        const ChevronLeft = (p) => <Icon {...p} paths='<polyline points="15 18 9 12 15 6"/>' />;
+        const ChevronRight = (p) => <Icon {...p} paths='<polyline points="9 18 15 12 9 6"/>' />;
+        const Shapes = (p) => <Icon {...p} paths='<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/>' />;
+
+        // =========================================================================
+        // 2. CONTROLADOR DE AUDIO (WEB AUDIO API)
+        // =========================================================================
+        const AudioController = {
+            ctx: null, muted: false, bgmNode: null,
+            init: function() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.ctx = new AudioContext();
+            },
+            startBGM: function() {
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+                if (this.bgmNode) return;
+                const mainGain = this.ctx.createGain();
+                mainGain.gain.value = this.muted ? 0 : 0.055;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 780;
+                filter.connect(mainGain);
+                mainGain.connect(this.ctx.destination);
+                this.bgmNode = { mainGain, filter, interval: null };
+                const chords = [ [55, 60, 64, 71], [52, 57, 64, 71], [53, 57, 60, 64], [50, 55, 59, 64] ];
+                let chordIndex = 0;
+                const playChord = () => {
+                    if (this.ctx.state !== 'running') return;
+                    const chord = chords[chordIndex];
+                    chordIndex = (chordIndex + 1) % chords.length;
+                    chord.forEach((midi, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+                        const now = this.ctx.currentTime;
+                        const delay = i * 0.2;
+                        gain.gain.setValueAtTime(0, now + delay);
+                        gain.gain.linearRampToValueAtTime(0.14, now + delay + 2);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 7.5);
+                        osc.connect(gain);
+                        gain.connect(filter);
+                        osc.start(now + delay);
+                        osc.stop(now + delay + 7.5);
+                    });
+                };
+                playChord();
+                this.bgmNode.interval = setInterval(playChord, 6000);
+            },
+            play: function(type) {
+                if (this.muted || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(840, now + 0.1);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'jump') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(420, now);
+                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.08);
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
+                } else if (type === 'pop-reverse') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(640, now);
+                    osc.frequency.exponentialRampToValueAtTime(280, now + 0.12);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                } else if (type === 'success') {
+                    osc.disconnect();
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.value = freq;
+                        o.connect(g);
+                        g.connect(this.ctx.destination);
+                        const startTime = now + (i * 0.07);
+                        g.gain.setValueAtTime(0, startTime);
+                        g.gain.linearRampToValueAtTime(0.18, startTime + 0.04);
+                        g.gain.linearRampToValueAtTime(0, startTime + 0.35);
+                        o.start(startTime);
+                        o.stop(startTime + 0.35);
+                    });
+                } else if (type === 'swoosh') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.exponentialRampToValueAtTime(75, now + 0.18);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                }
+            },
+            toggleMute: function() {
+                this.muted = !this.muted;
+                if (this.bgmNode && this.ctx) {
+                    this.bgmNode.mainGain.gain.setTargetAtTime(this.muted ? 0 : 0.055, this.ctx.currentTime, 0.1);
+                }
+                return this.muted;
+            }
+        };
+
+        // =========================================================================
+        // 3. COMPONENTE KATEX
+        // =========================================================================
+        const MathDisplay = memo(({ latex, className = "", inline = false, align = "left" }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    try {
+                        window.katex.render(latex, containerRef.current, {
+                            displayMode: !inline,
+                            throwOnError: false,
+                            strict: false,
+                            trust: true
+                        });
+                    } catch (e) {
+                        containerRef.current.innerText = latex;
+                    }
+                }
+            }, [latex, inline]);
+
+            if (inline) return <span ref={containerRef} className={`inline-block align-middle ${className}`} />;
+            return (
+                <div className={`math-flow-line scrollbar-hide ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}>
+                    <div ref={containerRef} className={align === 'center' ? 'text-center' : 'text-left'} />
+                </div>
+            );
+        });
+
+        // =========================================================================
+        // 4. PIZARRA INTERACTIVA COMPLETA (CONSERVADA)
+        // =========================================================================
+        const DrawingCanvas = () => {
+            const canvasRef = useRef(null);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [isDrawMode, setIsDrawMode] = useState(false);
+            const [tool, setTool] = useState('pen');
+            const [isSnapMode, setIsSnapMode] = useState(false);
+            const [penColor, setPenColor] = useState('#ef4444');
+            const [penWidth, setPenWidth] = useState(6);
+            const penPointsRef = useRef([]);
+            const activePointerRef = useRef(null);
+            const savedImageRef = useRef(null);
+            const startPosRef = useRef({ x: 0, y: 0 });
+            const historyRef = useRef([]);
+
+            const playPop = () => { AudioController.init(); AudioController.startBGM(); AudioController.play('pop'); };
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas || !canvas.parentElement) return;
+                const updateSize = (entries) => {
+                    for (let entry of entries) {
+                        const { width, height } = entry.contentRect;
+                        const ctx = canvas.getContext('2d');
+                        let imgData = null;
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) {}
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        if (imgData) ctx.putImageData(imgData, 0, 0);
+                    }
+                };
+                const observer = new ResizeObserver(updateSize);
+                observer.observe(canvas.parentElement);
+                return () => observer.disconnect();
+            }, []);
+
+            const renderPen = (points, straight = false) => {
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.putImageData(savedImageRef.current, 0, 0);
+                const angle = -15 * Math.PI / 180;
+                const c = Math.cos(angle), s = Math.sin(angle);
+                const local = points.map(p => ({ x: c * p.x + s * p.y, y: (-s * p.x + c * p.y) / 0.5 }));
+                ctx.save();
+                ctx.transform(c, s, -0.5 * s, 0.5 * c, 0, 0);
+                ctx.lineWidth = penWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = penColor;
+                ctx.fillStyle = penColor;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.beginPath();
+                ctx.moveTo(local[0].x, local[0].y);
+                if (local.length === 1) {
+                    ctx.arc(local[0].x, local[0].y, penWidth / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    if (!straight) {
+                        for (let i = 1; i < local.length - 1; i++) {
+                            const midpoint = { x: (local[i].x + local[i + 1].x) / 2, y: (local[i].y + local[i + 1].y) / 2 };
+                            ctx.quadraticCurveTo(local[i].x, local[i].y, midpoint.x, midpoint.y);
+                        }
+                    }
+                    const last = local[local.length - 1];
+                    ctx.lineTo(last.x, last.y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            };
+
+            const startDrawing = (e) => {
+                if (!isDrawMode || activePointerRef.current !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+
+                historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = tool === 'highlighter' ? 24 : penWidth;
+                ctx.strokeStyle = tool === 'highlighter' ? `${penColor}4D` : penColor;
+                ctx.globalCompositeOperation = tool === 'highlighter' ? 'multiply' : 'source-over';
+
+                const startX = e.clientX - rect.left;
+                const startY = e.clientY - rect.top;
+
+                savedImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                startPosRef.current = { x: startX, y: startY };
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                penPointsRef.current = [{ x: startX, y: startY }];
+                activePointerRef.current = e.pointerId;
+                canvas.setPointerCapture(e.pointerId);
+                if (tool === 'pen') renderPen(penPointsRef.current);
+                setIsDrawing(true);
+            };
+
+            const draw = (e) => {
+                if (activePointerRef.current !== e.pointerId || !isDrawMode) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+                const currentX = e.clientX - rect.left;
+                const currentY = e.clientY - rect.top;
+
+                if (isSnapMode || e.shiftKey) {
+                    ctx.putImageData(savedImageRef.current, 0, 0);
+                    const dx = currentX - startPosRef.current.x;
+                    const dy = currentY - startPosRef.current.y;
+                    const angle = Math.atan2(dy, dx);
+                    const snappedAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const snapX = startPosRef.current.x + Math.cos(snappedAngle) * dist;
+                    const snapY = startPosRef.current.y + Math.sin(snappedAngle) * dist;
+                    if (tool === 'pen') { renderPen([startPosRef.current, { x: snapX, y: snapY }], true); return; }
+                    ctx.beginPath(); ctx.moveTo(startPosRef.current.x, startPosRef.current.y); ctx.lineTo(snapX, snapY); ctx.stroke();
+                } else {
+                    if (tool === 'pen') {
+                        const events = e.nativeEvent?.getCoalescedEvents?.() || [];
+                        const samples = events.length ? events : [e];
+                        samples.forEach(sample => penPointsRef.current.push({ x: sample.clientX - rect.left, y: sample.clientY - rect.top }));
+                        renderPen(penPointsRef.current); return;
+                    }
+                    if (tool === 'highlighter') ctx.putImageData(savedImageRef.current, 0, 0);
+                    ctx.lineTo(currentX, currentY); ctx.stroke();
+                }
+            };
+
+            const stopDrawing = () => {
+                const canvas = canvasRef.current;
+                const pointer = activePointerRef.current;
+                activePointerRef.current = null;
+                if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+                if (isDrawing) { canvas.getContext('2d').closePath(); setIsDrawing(false); }
+            };
+
+            const selectTool = (nextTool) => {
+                stopDrawing(); playPop();
+                const enabled = nextTool !== 'selector' && !(isDrawMode && tool === nextTool);
+                setIsDrawMode(enabled);
+                if (nextTool !== 'selector') setTool(nextTool);
+            };
+
+            useEffect(() => {
+                const onKey = (event) => {
+                    if (event.key === 'Escape') { setIsDrawing(false); setIsDrawMode(false); }
+                    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+                        if (historyRef.current.length > 0) {
+                            playPop();
+                            const lastState = historyRef.current.pop();
+                            const canvas = canvasRef.current;
+                            canvas.getContext('2d').putImageData(lastState, 0, 0);
+                            savedImageRef.current = lastState;
+                        }
+                    }
+                };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+
+            const clearCanvas = () => {
+                playPop();
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                savedImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            };
+
+            const colors = [
+                { name: 'Rojo', hex: '#ef4444', tw: 'bg-[#ef4444]' },
+                { name: 'Negro', hex: '#0f172a', tw: 'bg-[#0f172a]' },
+                { name: 'Azul', hex: '#3b82f6', tw: 'bg-[#3b82f6]' },
+                { name: 'Verde', hex: '#22c55e', tw: 'bg-[#22c55e]' },
+                { name: 'Amarillo', hex: '#facc15', tw: 'bg-[#facc15]' }
+            ];
+
+            return (
+                <>
+                    <div style={{ zIndex: 120, pointerEvents: 'auto' }} className="absolute top-2 right-2 flex flex-wrap max-w-[calc(100%-1rem)] justify-end gap-1.5 sm:gap-2 pointer-events-auto bg-white/85 p-1.5 rounded-xl backdrop-blur-sm shadow-md border border-slate-200">
+                        <button onClick={() => selectTool('selector')} aria-pressed={!isDrawMode} title="Seleccionar (Esc)" className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${!isDrawMode ? 'bg-cyan-500 text-white border-cyan-600' : 'bg-white text-slate-600 border-slate-300'}`}>🖱️ Selector</button>
+                        <button onClick={() => selectTool('pen')} className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isDrawMode && tool === 'pen' ? 'bg-indigo-500 text-white border-indigo-600 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>🖊️ Lápiz</button>
+                        <button onClick={() => selectTool('highlighter')} className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isDrawMode && tool === 'highlighter' ? 'bg-yellow-400 text-slate-900 border-yellow-500 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>🖍️ Resaltador</button>
+                        {isDrawMode && tool === 'pen' && (
+                            <label className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border-2 border-indigo-200 text-xs font-black text-slate-700">
+                                Grosor <input type="range" min="3" max="16" step="1" value={penWidth} onChange={e => setPenWidth(Number(e.target.value))} className="w-16 accent-indigo-600" />
+                            </label>
+                        )}
+                        {isDrawMode && (
+                            <>
+                                <button onClick={() => { playPop(); setIsSnapMode(!isSnapMode); }} className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-black rounded-lg border-2 shadow-sm transition-all ${isSnapMode ? 'bg-blue-500 text-white border-blue-600 scale-105' : 'bg-white text-slate-600 border-slate-300'}`}>📐 Recto</button>
+                                <button onClick={clearCanvas} className="px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-black bg-white text-rose-600 border-2 border-rose-300 rounded-lg shadow-sm hover:bg-rose-50 active:scale-95 transition-all">🗑️ Limpiar</button>
+                                <div className="px-2 py-1 text-[11px] font-bold text-slate-400 hidden sm:flex items-center bg-white rounded-lg border border-slate-200">CTRL+Z: Deshacer</div>
+                            </>
+                        )}
+                    </div>
+                    {isDrawMode && (
+                        <div className="absolute top-1/2 right-3 -translate-y-1/2 z-[110] flex flex-col gap-2.5 p-2 bg-white/90 backdrop-blur-md rounded-xl border-[3px] border-slate-200 shadow-xl pointer-events-auto">
+                            {colors.map(c => (
+                                <button key={c.hex} onClick={() => { playPop(); setPenColor(c.hex); }} title={c.name} className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-[3px] shadow-sm transition-all hover:scale-110 active:scale-95 ${c.tw} ${penColor === c.hex ? 'border-white outline outline-[3px] outline-slate-800 scale-110' : 'border-black/20'}`} />
+                            ))}
+                        </div>
+                    )}
+                    <canvas
+                        ref={canvasRef}
+                        style={{ zIndex: 100, pointerEvents: isDrawMode ? 'auto' : 'none', touchAction: isDrawMode ? 'none' : 'auto' }}
+                        className={`absolute inset-0 z-[100] touch-none ${isDrawMode ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`}
+                        onPointerDown={startDrawing}
+                        onPointerMove={draw}
+                        onPointerUp={e => { if (activePointerRef.current === e.pointerId) { draw(e); stopDrawing(); } }}
+                        onPointerLeave={e => { if (!e.currentTarget.hasPointerCapture(e.pointerId)) stopDrawing(); }}
+                        onLostPointerCapture={stopDrawing}
+                        onPointerCancel={stopDrawing}
+                    />
+                </>
+            );
+        };
+
+        // =========================================================================
+        // 5. VISUALIZADOR 1: SALTO DINÁMICO DE LA COMA ROJA (DERECHA E IZQUIERDA)
+        // =========================================================================
+        const CommaJumpVisualizer = memo(({ config }) => {
+            const {
+                direction,       // 'right' | 'left'
+                digits,          // array de celdas: { char, added?: boolean, fade?: boolean, ellipsis?: boolean }
+                startSlot,       // índice inicial de la coma (borde entre celdas)
+                jumps,           // cantidad de saltos (1, 2 o 3)
+                factorLabel,     // "10", "100", "1 000", "0,1", "0,01", "0,010"
+                ruleText,        // texto explicativo superior
+                finalDisplay,    // resultado limpio final
+                noteText,        // nota breve sobre ceros agregados o eliminados
+                hideCommaAtEnd   // true si el resultado es entero (ej. 562, 480, 8 900)
+            } = config;
+
+            const [currentJump, setCurrentJump] = useState(0);
+            const [runId, setRunId] = useState(0);
+
+            useEffect(() => {
+                setCurrentJump(0);
+                const timers = [];
+                for (let j = 1; j <= jumps; j++) {
+                    timers.push(setTimeout(() => {
+                        setCurrentJump(j);
+                        AudioController.play('jump');
+                    }, 420 + (j - 1) * 620));
+                }
+                return () => timers.forEach(clearTimeout);
+            }, [config, runId, jumps]);
+
+            const replay = () => {
+                AudioController.init();
+                AudioController.play('pop');
+                setRunId(r => r + 1);
+            };
+
+            const n = digits.length;
+            const cellW = Math.min(54, Math.floor(460 / Math.max(n, 5)));
+            const totalW = n * cellW;
+            const startX = (540 - totalW) / 2;
+            const boxY = 148;
+            const boxH = 62;
+
+            const commaSlot = direction === 'right' ? startSlot + currentJump : startSlot - currentJump;
+            const commaX = startX + commaSlot * cellW;
+            const finished = currentJump >= jumps;
+
+            // Renderiza la potencia de 10 o factor decimal con ceros/decimales resaltados
+            const renderFactorBadge = () => {
+                if (direction === 'right') {
+                    const zeros = factorLabel.slice(1);
+                    return (
+                        <g>
+                            <rect x="85" y="14" width="370" height="44" rx="14" fill="#fef3c7" stroke="#f59e0b" strokeWidth="2.5" />
+                            <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#78350f">
+                                Factor: <tspan fill="#0f172a">1</tspan><tspan fill="#dc2626" fontSize="16">{zeros}</tspan>  →  {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la DERECHA ➔
+                            </text>
+                            <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#92400e">
+                                {ruleText}
+                            </text>
+                        </g>
+                    );
+                }
+                return (
+                    <g>
+                        <rect x="65" y="14" width="410" height="44" rx="14" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2.5" />
+                        <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#0c4a6e">
+                            Factor: <tspan fill="#dc2626" fontSize="16">{factorLabel}</tspan>  →  ⬅ {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la IZQUIERDA
+                        </text>
+                        <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#0369a1">
+                            {ruleText}
+                        </text>
+                    </g>
+                );
+            };
+
+            return (
+                <div className="w-full h-full flex flex-col items-center justify-center relative">
+                    <svg viewBox="0 0 540 355" className="w-full max-h-[370px]" role="img" aria-label="Animación del salto de la coma decimal">
+                        {renderFactorBadge()}
+
+                        {/* Arcos de salto acumulados */}
+                        {Array.from({ length: currentJump }).map((_, idx) => {
+                            const s0 = direction === 'right' ? startSlot + idx : startSlot - idx;
+                            const s1 = direction === 'right' ? s0 + 1 : s0 - 1;
+                            const x0 = startX + s0 * cellW;
+                            const x1 = startX + s1 * cellW;
+                            const midX = (x0 + x1) / 2;
+                            const peakY = boxY - 48;
+                            const arrowDir = direction === 'right' ? 1 : -1;
+                            return (
+                                <g key={`arc-${runId}-${idx}`}>
+                                    <path
+                                        d={`M ${x0} ${boxY - 6} Q ${midX} ${peakY} ${x1} ${boxY - 6}`}
+                                        fill="none"
+                                        stroke="#ef4444"
+                                        strokeWidth="3.5"
+                                        strokeLinecap="round"
+                                        className="arc-draw"
+                                    />
+                                    {/* Punta de flecha al aterrizar */}
+                                    <polygon
+                                        points={`${x1},${boxY - 5} ${x1 - 7 * arrowDir},${boxY - 15} ${x1 + 3 * arrowDir},${boxY - 16}`}
+                                        fill="#ef4444"
+                                        className="svg-pop"
+                                    />
+                                    {/* Etiqueta de número de salto */}
+                                    <circle cx={midX} cy={peakY + 14} r="11" fill="#ef4444" stroke="#ffffff" strokeWidth="2" className="svg-pop" />
+                                    <text x={midX} y={peakY + 18} textAnchor="middle" fontSize="11" fontWeight="900" fill="#ffffff">{idx + 1}°</text>
+                                </g>
+                            );
+                        })}
+
+                        {/* Fichas de dígitos */}
+                        {digits.map((d, i) => {
+                            const x = startX + i * cellW;
+                            // Mostrar ceros agregados justo cuando el salto los necesita
+                            let visible = true;
+                            if (d.added) {
+                                if (direction === 'right') {
+                                    visible = commaSlot > i;
+                                } else {
+                                    visible = commaSlot <= i + 1;
+                                }
+                            }
+                            const isFaded = finished && d.fade;
+                            const fill = d.added ? '#dbeafe' : (d.ellipsis ? '#f1f5f9' : '#ffffff');
+                            const stroke = d.added ? '#2563eb' : (isFaded ? '#cbd5e1' : '#334155');
+                            return (
+                                <g key={`d-${runId}-${i}`} opacity={visible ? (isFaded ? 0.32 : 1) : 0.14} style={{ transition: 'opacity 0.35s ease' }}>
+                                    <rect
+                                        x={x + 4}
+                                        y={boxY}
+                                        width={cellW - 8}
+                                        height={boxH}
+                                        rx="12"
+                                        fill={fill}
+                                        stroke={stroke}
+                                        strokeWidth={d.added ? '3.5' : '2.8'}
+                                        strokeDasharray={d.added && !visible ? '5 4' : 'none'}
+                                    />
+                                    <text
+                                        x={x + cellW / 2}
+                                        y={boxY + 42}
+                                        textAnchor="middle"
+                                        fontSize={d.ellipsis ? '22' : '30'}
+                                        fontWeight="900"
+                                        fill={d.added ? '#1d4ed8' : '#0f172a'}
+                                    >
+                                        {visible ? d.char : ''}
+                                    </text>
+                                    {d.added && visible && (
+                                        <text x={x + cellW / 2} y={boxY + boxH + 16} textAnchor="middle" fontSize="10" fontWeight="900" fill="#2563eb">
+                                            +0 azul
+                                        </text>
+                                    )}
+                                    {isFaded && (
+                                        <line x1={x + 10} y1={boxY + 52} x2={x + cellW - 10} y2={boxY + 10} stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+                                    )}
+                                </g>
+                            );
+                        })}
+
+                        {/* Marca fantasma de la posición inicial de la coma */}
+                        {currentJump > 0 && (
+                            <g opacity="0.35">
+                                <circle cx={startX + startSlot * cellW} cy={boxY + boxH - 8} r="5" fill="#94a3b8" />
+                                <text x={startX + startSlot * cellW} y={boxY + boxH + 18} textAnchor="middle" fontSize="10" fontWeight="800" fill="#64748b">inicio</text>
+                            </g>
+                        )}
+
+                        {/* COMA DECIMAL ROJA BRILLANTE EN MOVIMIENTO */}
+                        <g
+                            style={{
+                                transform: `translateX(${commaX}px)`,
+                                transition: 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                opacity: (finished && hideCommaAtEnd) ? 0.35 : 1
+                            }}
+                            className="animate-commaPulse"
+                        >
+                            <circle cx="0" cy={boxY + boxH - 4} r="16" fill="#fee2e2" stroke="#ef4444" strokeWidth="3" />
+                            <text x="0" y={boxY + boxH + 6} textAnchor="middle" fontSize="38" fontWeight="900" fill="#dc2626">,</text>
+                        </g>
+
+                        {/* Resultado final */}
+                        <g opacity={finished ? 1 : 0.25} style={{ transition: 'opacity 0.4s ease' }}>
+                            <rect x="85" y="256" width="370" height="72" rx="18" fill={finished ? '#fef08a' : '#f1f5f9'} stroke={finished ? '#eab308' : '#cbd5e1'} strokeWidth="3.5" />
+                            <text x="270" y="286" textAnchor="middle" fontSize="12.5" fontWeight="900" fill="#713f12">RESULTADO FINAL</text>
+                            <text x="270" y="316" textAnchor="middle" fontSize="28" fontWeight="900" fill="#065f46">{finalDisplay}</text>
+                        </g>
+                        {noteText && finished && (
+                            <text x="270" y="347" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#475569">{noteText}</text>
+                        )}
+                    </svg>
+
+                    <button
+                        onClick={replay}
+                        className="mt-1 px-4 py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-black text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+                    >
+                        🔄 Repetir salto de la coma
+                    </button>
+                </div>
+            );
+        });
+
+        // =========================================================================
+        // 6. VISUALIZADOR 2: MULTIPLICACIÓN VERTICAL EN CUADRÍCULA DE CUADERNO
+        // =========================================================================
+        const VerticalMultVisualizer = memo(({ config, step }) => {
+            const { topStr, topDec, botStr, botDec, p1Str, p2Str, totalStr, finalFormatted, singleDigit = false } = config;
+            const totalDec = topDec + botDec;
+
+            // Mapeo reactivo para 5 pasos (2 cifras) y 3 pasos internos (1 cifra)
+            const showP1 = !singleDigit && step >= 1;
+            const showP2 = !singleDigit && step >= 2;
+            const showSum = singleDigit ? step >= 1 : step >= 3;
+            const showComma = singleDigit ? step >= 2 : step >= 4;
+
+            const cols = Math.max(totalStr.length + 1, 7);
+            const cell = 38;
+            const gridW = cols * cell;
+            const startX = (540 - gridW) / 2;
+            const startY = 58;
+
+            const renderAlignedRow = (str, rowIdx, options = {}) => {
+                const { shiftRight = 0, color = '#0f172a', bg = null, highlightLast = false, decimalPos = 0, showRedComma = false, prefix = null } = options;
+                const chars = str.split('');
+                const startCol = cols - chars.length - shiftRight;
+                const y = startY + rowIdx * cell;
+
+                return (
+                    <g className="svg-pop">
+                        {prefix && (
+                            <text x={startX + (startCol - 1) * cell + cell / 2} y={y + 27} textAnchor="middle" fontSize="22" fontWeight="900" fill="#6366f1">{prefix}</text>
+                        )}
+                        {chars.map((ch, idx) => {
+                            const col = startCol + idx;
+                            const x = startX + col * cell;
+                            const isDecDigit = decimalPos > 0 && idx >= chars.length - decimalPos;
+                            return (
+                                <g key={idx}>
+                                    <rect
+                                        x={x + 2}
+                                        y={y + 2}
+                                        width={cell - 4}
+                                        height={cell - 4}
+                                        rx="7"
+                                        fill={bg || (showComma && isDecDigit ? '#fef08a' : '#ffffff')}
+                                        stroke={showComma && isDecDigit ? '#eab308' : '#e2e8f0'}
+                                        strokeWidth="2"
+                                    />
+                                    <text
+                                        x={x + cell / 2}
+                                        y={y + 27}
+                                        textAnchor="middle"
+                                        fontSize="22"
+                                        fontWeight="900"
+                                        fill={highlightLast && idx === chars.length - 1 ? '#dc2626' : color}
+                                    >
+                                        {ch}
+                                    </text>
+                                </g>
+                            );
+                        })}
+                        {/* Coma decimal roja sobre el borde */}
+                        {showRedComma && decimalPos > 0 && (
+                            <g className="animate-commaPulse">
+                                <circle cx={startX + (cols - decimalPos) * cell} cy={y + cell - 6} r="10" fill="#fee2e2" stroke="#ef4444" strokeWidth="2.5" />
+                                <text x={startX + (cols - decimalPos) * cell} y={y + cell + 1} textAnchor="middle" fontSize="24" fontWeight="900" fill="#dc2626">,</text>
+                            </g>
+                        )}
+                    </g>
+                );
+            };
+
+            const totalRowIdx = singleDigit ? 2 : 4;
+            const totalY = startY + totalRowIdx * cell;
+
+            return (
+                <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label="Multiplicación vertical en cuadrícula">
+                    <text x="270" y="24" textAnchor="middle" fontSize="15" fontWeight="900" fill="#1e293b">
+                        {showComma ? `Ubicamos la coma: ${totalDec} cifras desde la derecha` : 'Multiplicación Vertical Paso a Paso'}
+                    </text>
+
+                    {/* Fondo estilo hoja cuadriculada */}
+                    <rect x={startX - 18} y={startY - 14} width={gridW + 36} height={(singleDigit ? 3.5 : 5.5) * cell + 24} rx="18" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="3" />
+
+                    {/* Factor superior */}
+                    {renderAlignedRow(topStr, 0, {
+                        decimalPos: topDec,
+                        showRedComma: true,
+                        color: '#1e293b',
+                        bg: (!singleDigit && step === 0) ? '#e0f2fe' : null
+                    })}
+                    {/* Factor inferior */}
+                    {renderAlignedRow(botStr, 1, {
+                        decimalPos: botDec,
+                        showRedComma: botDec > 0,
+                        prefix: '×',
+                        color: '#1e293b',
+                        bg: (!singleDigit && step === 0) ? '#fce7f3' : null
+                    })}
+
+                    {/* Línea horizontal 1 */}
+                    <line x1={startX} y1={startY + 2 * cell + 1} x2={startX + gridW} y2={startY + 2 * cell + 1} stroke="#0f172a" strokeWidth="3.5" strokeLinecap="round" />
+
+                    {/* Etiqueta inicial cuando se alinean como enteros (Paso 1) */}
+                    {!singleDigit && step === 0 && (
+                        <g className="svg-pop">
+                            <rect x="85" y="162" width="370" height="58" rx="14" fill="#eff6ff" stroke="#3b82f6" strokeWidth="2.8" />
+                            <text x="270" y="186" textAnchor="middle" fontSize="13.5" fontWeight="900" fill="#1e3a8a">
+                                1° Multiplicamos como enteros ({topStr} × {botStr})
+                            </text>
+                            <text x="270" y="207" textAnchor="middle" fontSize="12.5" fontWeight="800" fill="#2563eb">
+                                Reservamos {topDec} + {botDec} = {totalDec} cifras decimales para el final
+                            </text>
+                        </g>
+                    )}
+
+                    {/* Producto parcial 1 (cuando son 2 cifras) */}
+                    {!singleDigit && showP1 && renderAlignedRow(p1Str, 2, { color: '#0369a1', bg: step === 1 ? '#e0f2fe' : '#ffffff' })}
+
+                    {/* Producto parcial 2 (corrido 1 lugar) */}
+                    {!singleDigit && showP2 && (
+                        <g>
+                            {renderAlignedRow(p2Str, 3, { shiftRight: 1, color: '#7c3aed', bg: step === 2 ? '#f3e8ff' : '#ffffff', prefix: '+' })}
+                            <rect x={startX + (cols - 1) * cell + 4} y={startY + 3 * cell + 4} width={cell - 8} height={cell - 8} rx="6" fill="#dbeafe" stroke="#60a5fa" strokeDasharray="4 3" />
+                            <text x={startX + (cols - 1) * cell + cell / 2} y={startY + 3 * cell + 26} textAnchor="middle" fontSize="14" fontWeight="900" fill="#2563eb">0</text>
+                        </g>
+                    )}
+
+                    {/* Línea horizontal 2 (para suma de parciales) */}
+                    {!singleDigit && showSum && (
+                        <line x1={startX} y1={startY + 4 * cell + 1} x2={startX + gridW} y2={startY + 4 * cell + 1} stroke="#0f172a" strokeWidth="3.5" strokeLinecap="round" />
+                    )}
+
+                    {/* Resultado final */}
+                    {showSum && renderAlignedRow(totalStr, totalRowIdx, {
+                        color: showComma ? '#065f46' : '#0f172a',
+                        bg: showComma ? '#dcfce7' : '#e0f2fe',
+                        decimalPos: showComma ? totalDec : 0,
+                        showRedComma: showComma
+                    })}
+
+                    {/* Arcos rojos contando desde la derecha */}
+                    {showComma && Array.from({ length: totalDec }).map((_, idx) => {
+                        const x0 = startX + (cols - idx) * cell;
+                        const x1 = startX + (cols - idx - 1) * cell;
+                        const midX = (x0 + x1) / 2;
+                        const baseArcY = totalY + cell + 4;
+                        return (
+                            <g key={idx}>
+                                <path d={`M ${x0} ${baseArcY} Q ${midX} ${baseArcY + 34} ${x1} ${baseArcY}`} fill="none" stroke="#ef4444" strokeWidth="3" className="arc-draw" />
+                                <text x={midX} y={baseArcY + 30} textAnchor="middle" fontSize="11" fontWeight="900" fill="#dc2626">{idx + 1}°</text>
+                            </g>
+                        );
+                    })}
+
+                    {/* Globo resumen inferior */}
+                    {showComma && (
+                        <g className="svg-pop">
+                            <rect x="65" y="294" width="410" height="50" rx="14" fill="#fef08a" stroke="#eab308" strokeWidth="3" />
+                            <text x="270" y="315" textAnchor="middle" fontSize="12.5" fontWeight="900" fill="#713f12">
+                                {topDec} {topDec === 1 ? 'decimal' : 'decimales'} + {botDec} {botDec === 1 ? 'decimal' : 'decimales'} = {totalDec} cifras decimales
+                            </text>
+                            <text x="270" y="336" textAnchor="middle" fontSize="18" fontWeight="900" fill="#065f46">
+                                Producto final: {finalFormatted}
+                            </text>
+                        </g>
+                    )}
+                </svg>
+            );
+        });
+
+        // =========================================================================
+        // 7. VISUALIZADOR 3: CASO ESPECIAL 0,005 × 2,005 (RETO 4, PASO 10)
+        // =========================================================================
+        const SpecialProductVisualizer = memo(() => (
+            <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label="Caso especial 0,005 por 2,005">
+                <text x="270" y="22" textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#1e293b">Caso Especial: Multiplicación de dos decimales</text>
+
+                <g className="svg-pop">
+                    <rect x="42" y="38" width="210" height="68" rx="16" fill="#e0f2fe" stroke="#0284c7" strokeWidth="3" />
+                    <text x="147" y="70" textAnchor="middle" fontSize="24" fontWeight="900" fill="#0f172a">0,<tspan fill="#0284c7">005</tspan></text>
+                    <text x="147" y="94" textAnchor="middle" fontSize="12" fontWeight="900" fill="#0369a1">3 cifras decimales</text>
+                </g>
+
+                <text x="270" y="82" textAnchor="middle" fontSize="26" fontWeight="900" fill="#6366f1">×</text>
+
+                <g className="svg-pop" style={{ animationDelay: '0.1s' }}>
+                    <rect x="288" y="38" width="210" height="68" rx="16" fill="#fce7f3" stroke="#db2777" strokeWidth="3" />
+                    <text x="393" y="70" textAnchor="middle" fontSize="24" fontWeight="900" fill="#0f172a">2,<tspan fill="#db2777">005</tspan></text>
+                    <text x="393" y="94" textAnchor="middle" fontSize="12" fontWeight="900" fill="#be185d">3 cifras decimales</text>
+                </g>
+
+                {/* Paso 1: Enteros */}
+                <g className="svg-pop" style={{ animationDelay: '0.2s' }}>
+                    <rect x="75" y="118" width="390" height="50" rx="14" fill="#f8fafc" stroke="#64748b" strokeWidth="2.5" />
+                    <text x="270" y="138" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#475569">1° Multiplicamos los enteros sin coma:</text>
+                    <text x="270" y="160" textAnchor="middle" fontSize="20" fontWeight="900" fill="#1e293b">5 × 2 005 = 10 025</text>
+                </g>
+
+                {/* Paso 2: Conteo de 6 cifras decimales con arcos desde la derecha */}
+                <g className="svg-pop" style={{ animationDelay: '0.32s' }}>
+                    <text x="270" y="190" textAnchor="middle" fontSize="13.5" fontWeight="900" fill="#dc2626">2° Contamos 3 + 3 = 6 saltos desde la derecha:</text>
+                    {['0', '0', '1', '0', '0', '2', '5'].map((ch, i) => {
+                        const x = 92 + i * 52;
+                        const isAdded = i <= 1;
+                        return (
+                            <g key={i}>
+                                <rect x={x} y="218" width="44" height="46" rx="10" fill={isAdded ? '#dbeafe' : '#dcfce7'} stroke={isAdded ? '#2563eb' : '#16a34a'} strokeWidth="2.8" />
+                                <text x={x + 22} y="249" textAnchor="middle" fontSize="24" fontWeight="900" fill={isAdded ? '#1d4ed8' : '#0f172a'}>{ch}</text>
+                            </g>
+                        );
+                    })}
+                    {/* 6 arcos rojos desde la derecha */}
+                    {[0, 1, 2, 3, 4, 5].map((jumpIdx) => {
+                        const x0 = 92 + (7 - jumpIdx) * 52 - 4;
+                        const x1 = 92 + (6 - jumpIdx) * 52 - 4;
+                        const midX = (x0 + x1) / 2;
+                        return (
+                            <g key={`sp-arc-${jumpIdx}`}>
+                                <path d={`M ${x0} 214 Q ${midX} 192 ${x1} 214`} fill="none" stroke="#ef4444" strokeWidth="2.8" className="arc-draw" />
+                                <text x={midX} y="206" textAnchor="middle" fontSize="10" fontWeight="900" fill="#dc2626">{jumpIdx + 1}°</text>
+                            </g>
+                        );
+                    })}
+                    {/* Coma roja entre índice 0 y 1 */}
+                    <g className="animate-commaPulse">
+                        <circle cx="140" cy="264" r="12" fill="#fee2e2" stroke="#ef4444" strokeWidth="3" />
+                        <text x="140" y="272" textAnchor="middle" fontSize="28" fontWeight="900" fill="#dc2626">,</text>
+                    </g>
+                </g>
+
+                <rect x="125" y="294" width="290" height="44" rx="12" fill="#fef08a" stroke="#ca8a04" strokeWidth="3" />
+                <text x="270" y="322" textAnchor="middle" fontSize="20" fontWeight="900" fill="#065f46">Resultado: 0,010025</text>
+            </svg>
+        ));
+
+        // =========================================================================
+        // 8. VISUALIZADOR 4: CONTEO DE CIFRAS DECIMALES (RETO 5)
+        // =========================================================================
+        const DecimalCountVisualizer = memo(({ step }) => (
+            <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label="Conteo de cifras decimales en 3,375 por 19,29">
+                <text x="270" y="24" textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#1e293b">Propiedad del Conteo de Cifras Decimales</text>
+
+                {/* Factor 1 */}
+                <g className="svg-pop">
+                    <rect x="30" y="46" width="220" height="104" rx="18" fill={step === 0 ? '#e0f2fe' : '#f8fafc'} stroke="#0284c7" strokeWidth={step === 0 ? '4' : '2.5'} />
+                    <text x="140" y="70" textAnchor="middle" fontSize="12" fontWeight="900" fill="#0369a1">PRIMER FACTOR</text>
+                    <text x="140" y="106" textAnchor="middle" fontSize="30" fontWeight="900" fill="#0f172a">
+                        3<tspan fill="#dc2626">,</tspan><tspan fill="#0284c7">375</tspan>
+                    </text>
+                    {[0, 1, 2].map(i => (
+                        <g key={i}>
+                            <circle cx={136 + i * 19} cy="130" r="8.5" fill="#0284c7" />
+                            <text x={136 + i * 19} y="134" textAnchor="middle" fontSize="10" fontWeight="900" fill="#ffffff">{i + 1}</text>
+                        </g>
+                    ))}
+                </g>
+
+                <text x="270" y="108" textAnchor="middle" fontSize="28" fontWeight="900" fill="#6366f1">×</text>
+
+                {/* Factor 2 */}
+                <g opacity={step >= 1 ? 1 : 0.25} className={step >= 1 ? 'svg-pop' : ''}>
+                    <rect x="290" y="46" width="220" height="104" rx="18" fill={step === 1 ? '#fce7f3' : '#f8fafc'} stroke="#db2777" strokeWidth={step === 1 ? '4' : '2.5'} />
+                    <text x="400" y="70" textAnchor="middle" fontSize="12" fontWeight="900" fill="#be185d">SEGUNDO FACTOR</text>
+                    <text x="400" y="106" textAnchor="middle" fontSize="30" fontWeight="900" fill="#0f172a">
+                        19<tspan fill="#dc2626">,</tspan><tspan fill="#db2777">29</tspan>
+                    </text>
+                    {[0, 1].map(i => (
+                        <g key={i}>
+                            <circle cx={412 + i * 19} cy="130" r="8.5" fill="#db2777" />
+                            <text x={412 + i * 19} y="134" textAnchor="middle" fontSize="10" fontWeight="900" fill="#ffffff">{i + 1}</text>
+                        </g>
+                    ))}
+                </g>
+
+                {/* Candado de verificación de últimas cifras */}
+                {step >= 2 && (
+                    <g className="svg-pop">
+                        <rect x="52" y="164" width="436" height="48" rx="14" fill="#ecfdf5" stroke="#10b981" strokeWidth="3" />
+                        <text x="270" y="193" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#065f46">
+                            🔒 Verificación: 5 × 9 = 45 ≠ ...0 (ninguna cifra se pierde ✓)
+                        </text>
+                    </g>
+                )}
+
+                {/* Suma y barra final de 5 casillas decimales iluminadas */}
+                {step >= 3 && (
+                    <g className="svg-pop">
+                        <rect x="36" y="226" width="468" height="118" rx="18" fill="#fef08a" stroke="#ca8a04" strokeWidth="3.5" />
+                        <text x="270" y="254" textAnchor="middle" fontSize="19" fontWeight="900" fill="#713f12">
+                            <tspan fill="#0284c7">3</tspan> + <tspan fill="#db2777">2</tspan> = <tspan fill="#065f46" fontSize="22">5 cifras decimales</tspan>
+                        </text>
+                        <text x="150" y="302" textAnchor="end" fontSize="26" fontWeight="900" fill="#0f172a">
+                            65<tspan fill="#dc2626">,</tspan>
+                        </text>
+                        {['1', '0', '3', '7', '5'].map((digit, i) => {
+                            const cx = 162 + i * 54;
+                            return (
+                                <g key={i}>
+                                    <rect x={cx} y="270" width="44" height="44" rx="10" fill="#dcfce7" stroke="#059669" strokeWidth="2.8" />
+                                    <text x={cx + 22} y="301" textAnchor="middle" fontSize="24" fontWeight="900" fill="#065f46">{digit}</text>
+                                    <circle cx={cx + 22} cy="328" r="8.5" fill="#059669" />
+                                    <text x={cx + 22} y="331.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#ffffff">{i + 1}</text>
+                                </g>
+                            );
+                        })}
+                    </g>
+                )}
+            </svg>
+        ));
+
+        // =========================================================================
+        // 9. VISUALIZADOR 5: PROBLEMAS DE APLICACIÓN (COMPRAS Y BOLETAS)
+        // =========================================================================
+        const ShoppingVisualizer = memo(({ exerciseId, step }) => {
+            // Retos 6, 7, 8, 9: Ilustración de productos en Paso 0, Multiplicación Vertical en pasos 1-2, Boleta final en Paso 3
+            const singleApps = {
+                6: {
+                    itemName: 'Cajas de chocolates',
+                    qty: 8,
+                    unitPrice: 'S/ 17,80',
+                    totalPrice: 'S/ 142,40',
+                    buyer: 'María',
+                    emoji: '🍫',
+                    color: '#92400e',
+                    bg: '#fef3c7',
+                    mult: { topStr: '1780', topDec: 2, botStr: '8', botDec: 0, totalStr: '14240', finalFormatted: 'S/ 142,40', singleDigit: true }
+                },
+                7: {
+                    itemName: 'Pantalones',
+                    qty: 6,
+                    unitPrice: 'S/ 89,88',
+                    totalPrice: 'S/ 539,28',
+                    buyer: 'Paula',
+                    emoji: '👖',
+                    color: '#1d4ed8',
+                    bg: '#dbeafe',
+                    mult: { topStr: '8988', topDec: 2, botStr: '6', botDec: 0, totalStr: '53928', finalFormatted: 'S/ 539,28', singleDigit: true }
+                },
+                8: {
+                    itemName: 'Paquetes de galletas',
+                    qty: 12,
+                    unitPrice: 'S/ 3,80',
+                    totalPrice: 'S/ 45,60',
+                    buyer: 'Omar',
+                    emoji: '🍪',
+                    color: '#0369a1',
+                    bg: '#e0f2fe',
+                    mult: { topStr: '380', topDec: 2, botStr: '12', botDec: 0, p1Str: '760', p2Str: '380', totalStr: '4560', finalFormatted: 'S/ 45,60', singleDigit: false }
+                },
+                9: {
+                    itemName: 'Cajas de bombones',
+                    qty: 24,
+                    unitPrice: 'S/ 17,89',
+                    totalPrice: 'S/ 429,36',
+                    buyer: 'Javier',
+                    emoji: '💝',
+                    color: '#be123c',
+                    bg: '#ffe4e6',
+                    mult: { topStr: '1789', topDec: 2, botStr: '24', botDec: 0, p1Str: '7156', p2Str: '3578', totalStr: '42936', finalFormatted: 'S/ 429,36', singleDigit: false }
+                }
+            };
+
+            if (singleApps[exerciseId]) {
+                const app = singleApps[exerciseId];
+                // Paso 0: Esquema visual de todos los artículos comprados
+                if (step === 0) {
+                    const cols = app.qty <= 6 ? 3 : app.qty <= 8 ? 4 : app.qty <= 12 ? 4 : 6;
+                    const rows = Math.ceil(app.qty / cols);
+                    const cellW = Math.floor(460 / cols);
+                    const cellH = Math.min(82, Math.floor(215 / rows));
+                    const startX = (540 - cols * cellW) / 2;
+                    return (
+                        <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label={`Compra de ${app.buyer}`}>
+                            <text x="270" y="24" textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#1e293b">
+                                Compra de {app.buyer}: {app.qty} {app.itemName}
+                            </text>
+                            <rect x="26" y="40" width="488" height="236" rx="20" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="3" />
+                            {Array.from({ length: app.qty }).map((_, i) => {
+                                const r = Math.floor(i / cols);
+                                const c = i % cols;
+                                const x = startX + c * cellW + 5;
+                                const y = 52 + r * cellH;
+                                return (
+                                    <g key={i} className="svg-pop" style={{ animationDelay: `${i * 0.02}s` }}>
+                                        <rect x={x} y={y} width={cellW - 10} height={cellH - 8} rx="11" fill={app.bg} stroke={app.color} strokeWidth="2" />
+                                        <text x={x + (cellW - 10) / 2} y={y + (cellH - 8) * 0.52} textAnchor="middle" fontSize={app.qty === 24 ? '18' : '24'}>{app.emoji}</text>
+                                        <text x={x + (cellW - 10) / 2} y={y + (cellH - 8) - 6} textAnchor="middle" fontSize={app.qty === 24 ? '9.5' : '11'} fontWeight="900" fill={app.color}>{app.unitPrice}</text>
+                                    </g>
+                                );
+                            })}
+                            <rect x="75" y="292" width="390" height="48" rx="14" fill="#e0e7ff" stroke="#4f46e5" strokeWidth="3" />
+                            <text x="270" y="322" textAnchor="middle" fontSize="16.5" fontWeight="900" fill="#312e81">
+                                Total = {app.qty} × {app.unitPrice}
+                            </text>
+                        </svg>
+                    );
+                }
+
+                // Pasos intermedios: Multiplicación vertical animada
+                if (app.mult.singleDigit && (step === 1 || step === 2)) {
+                    return <VerticalMultVisualizer config={app.mult} step={step} />;
+                }
+                if (!app.mult.singleDigit && (step === 1 || step === 2 || step === 3)) {
+                    // step 1 -> parciales (2), step 2 -> suma (3), step 3 -> coma (4)
+                    return <VerticalMultVisualizer config={app.mult} step={step + 1} />;
+                }
+
+                // Paso Final: Boleta de pago oficial
+                return (
+                    <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label={`Boleta final de ${app.buyer}`}>
+                        <g className="svg-pop">
+                            <rect x="85" y="24" width="370" height="306" rx="22" fill="#ffffff" stroke="#0f172a" strokeWidth="4" />
+                            <rect x="85" y="24" width="370" height="58" rx="18" fill="#0f172a" />
+                            <text x="270" y="59" textAnchor="middle" fontSize="18" fontWeight="900" fill="#fde047">🧾 BOLETA DE COMPRA</text>
+
+                            <text x="115" y="114" fontSize="14" fontWeight="800" fill="#64748b">Cliente:</text>
+                            <text x="425" y="114" textAnchor="end" fontSize="16" fontWeight="900" fill="#0f172a">{app.buyer}</text>
+
+                            <line x1="110" y1="130" x2="430" y2="130" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="5 4" />
+
+                            <text x="115" y="164" fontSize="26">{app.emoji}</text>
+                            <text x="152" y="158" fontSize="15" fontWeight="900" fill="#1e293b">{app.qty} × {app.itemName}</text>
+                            <text x="152" y="178" fontSize="13" fontWeight="700" fill="#64748b">Precio unitario: {app.unitPrice}</text>
+
+                            <line x1="110" y1="204" x2="430" y2="204" stroke="#0f172a" strokeWidth="3" />
+
+                            <rect x="110" y="222" width="320" height="82" rx="16" fill="#fef08a" stroke="#eab308" strokeWidth="3.5" />
+                            <text x="270" y="250" textAnchor="middle" fontSize="13" fontWeight="900" fill="#713f12">TOTAL A PAGAR</text>
+                            <text x="270" y="288" textAnchor="middle" fontSize="34" fontWeight="900" fill="#065f46">{app.totalPrice}</text>
+                        </g>
+                    </svg>
+                );
+            }
+
+            // RETO 10: Boleta multi-artículo de Sofía (4 blusas, 1 zapatos, 3 pañoletas -> S/ 303,00)
+            if (exerciseId === 10) {
+                const items = [
+                    { emoji: '👚', label: '4 blusas × S/ 43,85', ent: '175', dec: '40', active: step >= 0 },
+                    { emoji: '👠', label: '1 par zapatos × S/ 85,90', ent: '85', dec: '90', active: step >= 1 },
+                    { emoji: '🧣', label: '3 pañoletas × S/ 13,90', ent: '41', dec: '70', active: step >= 2 }
+                ];
+                return (
+                    <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label="Boleta y suma alineada de Sofía">
+                        <rect x="34" y="16" width="472" height="324" rx="22" fill="#ffffff" stroke="#0f172a" strokeWidth="3.5" />
+                        <rect x="34" y="16" width="472" height="48" rx="18" fill="#0f172a" />
+                        <text x="270" y="46" textAnchor="middle" fontSize="16.5" fontWeight="900" fill="#fde047">🛍️ BOLETA DE SOFÍA (Comas Alineadas)</text>
+
+                        {/* Columna guía roja vertical de comas */}
+                        <rect x="408" y="72" width="22" height="248" rx="8" fill="#fee2e2" opacity="0.7" />
+
+                        {items.map((it, i) => {
+                            const y = 104 + i * 52;
+                            return (
+                                <g key={i} opacity={it.active ? 1 : 0.18} className={it.active ? 'svg-pop' : ''}>
+                                    <text x="58" y={y + 4} fontSize="24">{it.emoji}</text>
+                                    <text x="92" y={y} fontSize="14.5" fontWeight="900" fill="#1e293b">{it.label}</text>
+                                    <text x="404" y={y + 2} textAnchor="end" fontSize="21" fontWeight="900" fill="#0f172a">S/ {it.ent}</text>
+                                    <text x="419" y={y + 2} textAnchor="middle" fontSize="24" fontWeight="900" fill="#dc2626">,</text>
+                                    <text x="434" y={y + 2} fontSize="21" fontWeight="900" fill="#0f172a">{it.dec}</text>
+                                    <line x1="56" y1={y + 18} x2="484" y2={y + 18} stroke="#e2e8f0" strokeWidth="1.5" />
+                                </g>
+                            );
+                        })}
+
+                        {/* Suma total */}
+                        {step >= 3 && (
+                            <g className="svg-pop">
+                                <line x1="290" y1="242" x2="484" y2="242" stroke="#0f172a" strokeWidth="4" />
+                                <rect x="54" y="254" width="432" height="68" rx="16" fill="#fef08a" stroke="#eab308" strokeWidth="3.5" />
+                                <text x="76" y="296" fontSize="17" fontWeight="900" fill="#713f12">TOTAL A PAGAR (+):</text>
+                                <text x="404" y="298" textAnchor="end" fontSize="28" fontWeight="900" fill="#065f46">S/ 303</text>
+                                <text x="419" y="298" textAnchor="middle" fontSize="30" fontWeight="900" fill="#dc2626">,</text>
+                                <text x="434" y="298" fontSize="28" fontWeight="900" fill="#065f46">00</text>
+                            </g>
+                        )}
+                    </svg>
+                );
+            }
+
+            // RETO 11: Artefactos de Lucía (4 TVs + 3 Tabletas -> S/ 8 380,66)
+            if (exerciseId === 11) {
+                return (
+                    <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label="Boleta y suma alineada de Lucía">
+                        <rect x="30" y="16" width="480" height="324" rx="22" fill="#ffffff" stroke="#0f172a" strokeWidth="3.5" />
+                        <rect x="30" y="16" width="480" height="48" rx="18" fill="#0f172a" />
+                        <text x="270" y="46" textAnchor="middle" fontSize="16.5" fontWeight="900" fill="#fde047">📺 BOLETA DE LUCÍA (7 Artefactos)</text>
+
+                        {/* Columna roja de comas alineadas */}
+                        <rect x="416" y="74" width="22" height="248" rx="8" fill="#fee2e2" opacity="0.7" />
+
+                        {/* Línea 1: 4 TVs */}
+                        <g className="svg-pop">
+                            <rect x="48" y="80" width="444" height="68" rx="14" fill="#eff6ff" stroke="#3b82f6" strokeWidth="2.5" />
+                            <text x="64" y="122" fontSize="28">📺</text>
+                            <text x="104" y="108" fontSize="14.5" fontWeight="900" fill="#1e3a8a">4 Televisores</text>
+                            <text x="104" y="130" fontSize="12.5" fontWeight="800" fill="#3b82f6">4 × S/ 1 345,99</text>
+                            <text x="412" y="122" textAnchor="end" fontSize="22" fontWeight="900" fill="#0f172a">S/ 5 383</text>
+                            <text x="427" y="122" textAnchor="middle" fontSize="25" fontWeight="900" fill="#dc2626">,</text>
+                            <text x="442" y="122" fontSize="22" fontWeight="900" fill="#0f172a">96</text>
+                        </g>
+
+                        {/* Línea 2: 3 Tabletas */}
+                        <g opacity={step >= 1 ? 1 : 0.2} className={step >= 1 ? 'svg-pop' : ''}>
+                            <rect x="48" y="160" width="444" height="68" rx="14" fill="#f5f3ff" stroke="#8b5cf6" strokeWidth="2.5" />
+                            <text x="64" y="202" fontSize="28">📱</text>
+                            <text x="104" y="188" fontSize="14.5" fontWeight="900" fill="#4c1d95">3 Tabletas</text>
+                            <text x="104" y="210" fontSize="12.5" fontWeight="800" fill="#7c3aed">3 × S/ 998,9</text>
+                            <text x="412" y="202" textAnchor="end" fontSize="22" fontWeight="900" fill="#0f172a">S/ 2 996</text>
+                            <text x="427" y="202" textAnchor="middle" fontSize="25" fontWeight="900" fill="#dc2626">,</text>
+                            <text x="442" y="202" fontSize="22" fontWeight="900" fill="#0f172a">7<tspan fill="#d97706">0</tspan></text>
+                        </g>
+
+                        {/* Suma Final */}
+                        {step >= 2 && (
+                            <g className="svg-pop">
+                                <line x1="280" y1="240" x2="490" y2="240" stroke="#0f172a" strokeWidth="4" />
+                                <rect x="48" y="252" width="444" height="72" rx="16" fill="#fef08a" stroke="#eab308" strokeWidth="3.5" />
+                                <text x="68" y="294" fontSize="16.5" fontWeight="900" fill="#713f12">GASTO TOTAL (+):</text>
+                                <text x="412" y="296" textAnchor="end" fontSize="26" fontWeight="900" fill="#065f46">S/ 8 380</text>
+                                <text x="427" y="296" textAnchor="middle" fontSize="28" fontWeight="900" fill="#dc2626">,</text>
+                                <text x="442" y="296" fontSize="26" fontWeight="900" fill="#065f46">66</text>
+                            </g>
+                        )}
+                    </svg>
+                );
+            }
+
+            return null;
+        });
+
+        // =========================================================================
+        // 10. BASE DE DATOS COMPLETA DE LOS 11 RETOS (100% VERIFICADOS)
+        // =========================================================================
+        const EXERCISES = [
+            // ================= BLOQUE 1: TÉCNICAS Y PROPIEDADES =================
+            {
+                id: 1,
+                block: 1,
+                title: "Reto 1",
+                subtitle: "Por 10, 100 y 1 000",
+                cardGradient: "from-rose-500/55 to-orange-600/55",
+                badgeColor: "bg-rose-500",
+                previewLatex: String.raw`5{,}35 \times 10 = 53{,}5`,
+                enunciado: () => (
+                    <span>Resuelve las siguientes multiplicaciones por la unidad seguida de ceros (la coma decimal se mueve a la <strong>derecha</strong> tantos lugares como ceros tenga la potencia de 10).</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Por 10 (1 cero)",
+                        latex: String.raw`5{\color{#ef4444},}35 \times 1{\color{#ef4444}0} = 53{\color{#ef4444},}5`,
+                        robotSpeech: "10 tiene 1 cero: la coma roja salta 1 lugar hacia la derecha, ubicándose entre el 3 y el 5.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '10', jumps: 1, startSlot: 1,
+                            digits: [{ char: '5' }, { char: '3' }, { char: '5' }],
+                            ruleText: '1 cero = 1 salto a la derecha', finalDisplay: '53,5'
+                        }
+                    },
+                    {
+                        badge: "2. Por 100 (2 ceros)",
+                        latex: String.raw`75{\color{#ef4444},}436 \times 1{\color{#ef4444}00} = 7543{\color{#ef4444},}6`,
+                        robotSpeech: "100 tiene 2 ceros: la coma roja salta 2 lugares a la derecha, pasando el 4 y el 3.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '100', jumps: 2, startSlot: 2,
+                            digits: [{ char: '7' }, { char: '5' }, { char: '4' }, { char: '3' }, { char: '6' }],
+                            ruleText: '2 ceros = 2 saltos a la derecha', finalDisplay: '7 543,6'
+                        }
+                    },
+                    {
+                        badge: "3. Por 1 000 (3 ceros)",
+                        latex: String.raw`0{\color{#ef4444},}562 \times 1\,{\color{#ef4444}000} = 562`,
+                        robotSpeech: "1 000 tiene 3 ceros: la coma salta 3 lugares hasta el final. Desaparece el cero inicial y la coma final.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '1 000', jumps: 3, startSlot: 1,
+                            digits: [{ char: '0', fade: true }, { char: '5' }, { char: '6' }, { char: '2' }],
+                            ruleText: '3 ceros = 3 saltos a la derecha', finalDisplay: '562',
+                            noteText: 'El cero a la izquierda y la coma final ya no se escriben.', hideCommaAtEnd: true
+                        }
+                    },
+                    {
+                        badge: "4. Por 100 (+1 cero)",
+                        latex: String.raw`85{\color{#ef4444},}5 \times 1{\color{#ef4444}00} = 8\,55{\color{#2563eb}0}`,
+                        robotSpeech: "Necesitamos 2 saltos a la derecha, pero solo hay 1 cifra decimal: ¡agregamos un cero azul para completar!",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '100', jumps: 2, startSlot: 2,
+                            digits: [{ char: '8' }, { char: '5' }, { char: '5' }, { char: '0', added: true }],
+                            ruleText: 'Falta 1 cifra → completamos con 1 cero azul', finalDisplay: '8 550',
+                            noteText: 'Se agregó 1 cero azul en el segundo salto.', hideCommaAtEnd: true
+                        }
+                    },
+                    {
+                        badge: "5. Por 100 (2 ceros)",
+                        latex: String.raw`0{\color{#ef4444},}696 \times 1{\color{#ef4444}00} = 69{\color{#ef4444},}6`,
+                        robotSpeech: "La coma salta 2 lugares a la derecha (pasa el 6 y el 9). El cero inicial desaparece: 69,6.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '100', jumps: 2, startSlot: 1,
+                            digits: [{ char: '0', fade: true }, { char: '6' }, { char: '9' }, { char: '6' }],
+                            ruleText: '2 ceros = 2 saltos a la derecha', finalDisplay: '69,6',
+                            noteText: 'El 0 a la izquierda de 69 ya no se escribe.'
+                        }
+                    },
+                    {
+                        badge: "6. Por 10 (1 cero)",
+                        latex: String.raw`2{\color{#ef4444},}25 \times 1{\color{#ef4444}0} = 22{\color{#ef4444},}5`,
+                        robotSpeech: "10 tiene 1 cero: movemos la coma 1 espacio a la derecha y obtenemos 22,5.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '10', jumps: 1, startSlot: 1,
+                            digits: [{ char: '2' }, { char: '2' }, { char: '5' }],
+                            ruleText: '1 cero = 1 salto a la derecha', finalDisplay: '22,5'
+                        }
+                    },
+                    {
+                        badge: "7. Por 100 (+1 cero)",
+                        latex: String.raw`4{\color{#ef4444},}8 \times 1{\color{#ef4444}00} = 48{\color{#2563eb}0}`,
+                        robotSpeech: "La coma salta 2 lugares a la derecha: pasa el 8 y como falta un lugar, agregamos un cero azul → 480.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '100', jumps: 2, startSlot: 1,
+                            digits: [{ char: '4' }, { char: '8' }, { char: '0', added: true }],
+                            ruleText: 'Falta 1 cifra → agregamos 1 cero azul', finalDisplay: '480',
+                            noteText: 'Resultado entero: 480.', hideCommaAtEnd: true
+                        }
+                    },
+                    {
+                        badge: "8. Por 1 000 (+2 ceros)",
+                        latex: String.raw`8{\color{#ef4444},}9 \times 1\,{\color{#ef4444}000} = 8\,9{\color{#2563eb}00}`,
+                        robotSpeech: "1 000 tiene 3 ceros: el primer salto pasa el 9 y los otros 2 saltos se completan con dos ceros azules → 8 900.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '1 000', jumps: 3, startSlot: 1,
+                            digits: [{ char: '8' }, { char: '9' }, { char: '0', added: true }, { char: '0', added: true }],
+                            ruleText: 'Faltan 2 cifras → agregamos 2 ceros azules', finalDisplay: '8 900',
+                            noteText: 'Se agregaron 2 ceros azules para completar los 3 saltos.', hideCommaAtEnd: true
+                        }
+                    },
+                    {
+                        badge: "9. Por 1 000 (3 ceros)",
+                        latex: String.raw`2{\color{#ef4444},}498 \times 1\,{\color{#ef4444}000} = 2\,498`,
+                        robotSpeech: "Hay exactamente 3 cifras decimales: al dar 3 saltos a la derecha la coma llega al final y queda el entero 2 498.",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '1 000', jumps: 3, startSlot: 1,
+                            digits: [{ char: '2' }, { char: '4' }, { char: '9' }, { char: '8' }],
+                            ruleText: '3 ceros = 3 saltos a la derecha', finalDisplay: '2 498',
+                            noteText: 'La coma al final desaparece.', hideCommaAtEnd: true
+                        }
+                    },
+                    {
+                        badge: "10. Periódico × 100",
+                        latex: String.raw`0{\color{#ef4444},}3333\ldots \times 1{\color{#ef4444}00} = 33{\color{#ef4444},}33\ldots`,
+                        robotSpeech: "¡Excelente! En un decimal periódico puro los treses siguen infinitamente. Al saltar 2 lugares a la derecha resulta 33,33...",
+                        graphic: {
+                            type: 'jump', direction: 'right', factorLabel: '100', jumps: 2, startSlot: 1,
+                            digits: [{ char: '0', fade: true }, { char: '3' }, { char: '3' }, { char: '3' }, { char: '3' }, { char: '…', ellipsis: true }],
+                            ruleText: '2 ceros = 2 saltos (las cifras 3 continúan)', finalDisplay: '33,33…',
+                            noteText: 'Decimal periódico puro: los 3 se repiten sin fin.'
+                        }
+                    }
+                ]
+            },
+            {
+                id: 2,
+                block: 1,
+                title: "Reto 2",
+                subtitle: "Operación: 9,58 × 2,3",
+                cardGradient: "from-blue-500/55 to-indigo-700/55",
+                badgeColor: "bg-blue-500",
+                previewLatex: String.raw`9{,}58 \times 2{,}3 = 22{,}034`,
+                enunciado: () => (
+                    <span>Resuelve la siguiente multiplicación: <MathDisplay inline latex="9{,}58 \times 2{,}3" /></span>
+                ),
+                verticalConfig: {
+                    topStr: '958', topDec: 2, botStr: '23', botDec: 1,
+                    p1Str: '2874', p2Str: '1916', totalStr: '22034', finalFormatted: '22,034'
+                },
+                steps: [
+                    {
+                        badge: "1. Alinear como enteros",
+                        latex: String.raw`958 \times 23 \quad (2 \text{ dec.} + 1 \text{ dec.} = 3 \text{ dec.})`,
+                        robotSpeech: "Ignoramos temporalmente las comas y alineamos los números como enteros: 958 × 23. Guardamos 2 + 1 = 3 decimales."
+                    },
+                    {
+                        badge: "2. Primer parcial (×3)",
+                        latex: String.raw`958 \times 3 = 2\,874`,
+                        robotSpeech: "Calculamos el primer producto parcial multiplicando 958 por 3 y obtenemos 2 874."
+                    },
+                    {
+                        badge: "3. Segundo parcial (×2)",
+                        latex: String.raw`958 \times 2 = 1\,916 \quad (\text{corrido: } 19\,160)`,
+                        robotSpeech: "Multiplicamos 958 por 2 = 1 916, corriendo el resultado un lugar a la izquierda (equivale a 19 160)."
+                    },
+                    {
+                        badge: "4. Sumar parciales",
+                        latex: String.raw`2\,874 + 19\,160 = 22\,034`,
+                        robotSpeech: "Sumamos ambos productos parciales columna por columna: 2 874 + 19 160 = 22 034."
+                    },
+                    {
+                        badge: "5. Ubicar la coma",
+                        latex: String.raw`2 + 1 = 3 \text{ cifras decimales} \implies \mathbf{22{\color{#ef4444},}034}`,
+                        robotSpeech: "Contamos 3 lugares desde la derecha con nuestros arcos rojos y ubicamos la coma: 22,034."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                block: 1,
+                title: "Reto 3",
+                subtitle: "Operación: 18,36 × 7,9",
+                cardGradient: "from-violet-500/55 to-purple-700/55",
+                badgeColor: "bg-violet-500",
+                previewLatex: String.raw`18{,}36 \times 7{,}9 = 145{,}044`,
+                enunciado: () => (
+                    <span>Resuelve la siguiente multiplicación: <MathDisplay inline latex="18{,}36 \times 7{,}9" /></span>
+                ),
+                verticalConfig: {
+                    topStr: '1836', topDec: 2, botStr: '79', botDec: 1,
+                    p1Str: '16524', p2Str: '12852', totalStr: '145044', finalFormatted: '145,044'
+                },
+                steps: [
+                    {
+                        badge: "1. Alinear como enteros",
+                        latex: String.raw`1\,836 \times 79 \quad (2 \text{ dec.} + 1 \text{ dec.} = 3 \text{ dec.})`,
+                        robotSpeech: "Alineamos como enteros: 1 836 × 79, recordando que 18,36 tiene 2 decimales y 7,9 tiene 1 decimal."
+                    },
+                    {
+                        badge: "2. Primer parcial (×9)",
+                        latex: String.raw`1\,836 \times 9 = 16\,524`,
+                        robotSpeech: "Calculamos el primer producto parcial: 1 836 × 9 = 16 524."
+                    },
+                    {
+                        badge: "3. Segundo parcial (×7)",
+                        latex: String.raw`1\,836 \times 7 = 12\,852 \quad (\text{corrido: } 128\,520)`,
+                        robotSpeech: "Multiplicamos 1 836 × 7 = 12 852, ubicándolo un espacio a la izquierda (128 520)."
+                    },
+                    {
+                        badge: "4. Sumar parciales",
+                        latex: String.raw`16\,524 + 128\,520 = 145\,044`,
+                        robotSpeech: "Sumamos los productos parciales ordenadamente: 16 524 + 128 520 = 145 044."
+                    },
+                    {
+                        badge: "5. Ubicar la coma",
+                        latex: String.raw`2 + 1 = 3 \text{ cifras decimales} \implies \mathbf{145{\color{#ef4444},}044}`,
+                        robotSpeech: "Contamos 3 lugares desde la derecha y colocamos la coma roja: 145,044."
+                    }
+                ]
+            },
+            {
+                id: 4,
+                block: 1,
+                title: "Reto 4",
+                subtitle: "Por 0,1; 0,01 y 0,001",
+                cardGradient: "from-cyan-500/55 to-sky-700/55",
+                badgeColor: "bg-cyan-600",
+                previewLatex: String.raw`76{,}9 \times 0{,}1 = 7{,}69`,
+                enunciado: () => (
+                    <span>Resuelve las siguientes multiplicaciones por <strong>0,1; 0,01; 0,001</strong> (la coma decimal se mueve a la <strong>izquierda</strong> tantos lugares como cifras decimales tenga el factor).</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Por 0,1 (1 a la izq.)",
+                        latex: String.raw`76{\color{#ef4444},}9 \times 0{,}1 = 7{\color{#ef4444},}69`,
+                        robotSpeech: "Multiplicar por un décimo (0,1) mueve la coma roja 1 lugar hacia la izquierda: 7,69.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 2,
+                            digits: [{ char: '7' }, { char: '6' }, { char: '9' }],
+                            ruleText: '1 décimo = 1 salto a la izquierda', finalDisplay: '7,69'
+                        }
+                    },
+                    {
+                        badge: "2. Entero × 0,1",
+                        latex: String.raw`635{\color{#ef4444},} \times 0{,}1 = 63{\color{#ef4444},}5`,
+                        robotSpeech: "Todo número entero tiene una coma invisible al final (635,). Al saltar 1 lugar a la izquierda queda 63,5.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 3,
+                            digits: [{ char: '6' }, { char: '3' }, { char: '5' }],
+                            ruleText: 'La coma invisible de 635, salta 1 lugar a la izquierda', finalDisplay: '63,5'
+                        }
+                    },
+                    {
+                        badge: "3. Por 0,1 (+0 entero)",
+                        latex: String.raw`0{\color{#ef4444},}9 \times 0{,}1 = 0{\color{#ef4444},}09`,
+                        robotSpeech: "Al mover la coma 1 lugar a la izquierda pasa antes del cero; agregamos un cero entero adelante: 0,09.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 2,
+                            digits: [{ char: '0', added: true }, { char: '0' }, { char: '9' }],
+                            ruleText: '1 salto a la izquierda → agregamos 0 entero', finalDisplay: '0,09'
+                        }
+                    },
+                    {
+                        badge: "4. Por 0,01 (2 a la izq.)",
+                        latex: String.raw`435{\color{#ef4444},}5 \times 0{,}01 = 4{\color{#ef4444},}355`,
+                        robotSpeech: "Un centésimo (0,01) tiene 2 cifras decimales: la coma roja salta 2 lugares hacia la izquierda → 4,355.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '4' }, { char: '3' }, { char: '5' }, { char: '5' }],
+                            ruleText: '1 centésimo = 2 saltos a la izquierda', finalDisplay: '4,355'
+                        }
+                    },
+                    {
+                        badge: "5. Por 0,01 (+0 entero)",
+                        latex: String.raw`95{\color{#ef4444},}99 \times 0{,}01 = 0{\color{#ef4444},}9599`,
+                        robotSpeech: "La coma salta 2 lugares a la izquierda (pasa el 5 y el 9). Como queda al inicio, colocamos 0 adelante: 0,9599.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '9' }, { char: '5' }, { char: '9' }, { char: '9' }],
+                            ruleText: '2 saltos a la izquierda → agregamos 0 entero', finalDisplay: '0,9599'
+                        }
+                    },
+                    {
+                        badge: "6. Por 0,01 (+ceros)",
+                        latex: String.raw`0{\color{#ef4444},}65 \times 0{,}01 = 0{\color{#ef4444},}0065`,
+                        robotSpeech: "Saltamos 2 lugares a la izquierda completando con ceros los espacios vacíos: 0,0065.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '0', added: true }, { char: '0' }, { char: '6' }, { char: '5' }],
+                            ruleText: 'Completamos con ceros hacia la izquierda', finalDisplay: '0,0065'
+                        }
+                    },
+                    {
+                        badge: "7. Por 0,01 (2 a la izq.)",
+                        latex: String.raw`189{\color{#ef4444},}9 \times 0{,}01 = 1{\color{#ef4444},}899`,
+                        robotSpeech: "La coma salta 2 lugares a la izquierda (pasa el 9 y el 8) y se ubica detrás del 1: 1,899.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '1' }, { char: '8' }, { char: '9' }, { char: '9' }],
+                            ruleText: '2 saltos a la izquierda', finalDisplay: '1,899'
+                        }
+                    },
+                    {
+                        badge: "8. Por 0,01 (+0 entero)",
+                        latex: String.raw`75{\color{#ef4444},}8 \times 0{,}01 = 0{\color{#ef4444},}758`,
+                        robotSpeech: "2 saltos a la izquierda pasan el 5 y el 7. Colocamos un cero entero delante de la coma: 0,758.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '7' }, { char: '5' }, { char: '8' }],
+                            ruleText: '2 saltos a la izquierda → agregamos 0 entero', finalDisplay: '0,758'
+                        }
+                    },
+                    {
+                        badge: "9. 0,010 = 0,01",
+                        latex: String.raw`0{\color{#ef4444},}003 \times 0{,}010 = 0{\color{#ef4444},}00003`,
+                        robotSpeech: "¡Ojo! 0,010 equivale a 0,01 (un centésimo, el cero final no cambia su valor). Por eso la coma salta 2 lugares a la izquierda: 0,00003.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,010 = 0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '0', added: true }, { char: '0' }, { char: '0' }, { char: '0' }, { char: '3' }],
+                            ruleText: '0,010 es 1 centésimo → 2 saltos a la izquierda', finalDisplay: '0,00003',
+                            noteText: 'El 0 al final de 0,010 no altera el valor (equivale a 0,01).'
+                        }
+                    },
+                    {
+                        badge: "10. Caso especial",
+                        latex: String.raw`0{,}005 \times 2{,}005 \implies 5 \times 2005 = 10025 \implies \mathbf{0{\color{#ef4444},}010025}`,
+                        robotSpeech: "Caso especial: multiplicamos 5 × 2005 = 10025. Como hay 3 + 3 = 6 cifras decimales, completamos con ceros: 0,010025.",
+                        graphic: { type: 'special005' }
+                    }
+                ]
+            },
+            {
+                id: 5,
+                block: 1,
+                title: "Reto 5",
+                subtitle: "¿Cuántas cifras decimales?",
+                cardGradient: "from-emerald-500/55 to-teal-700/55",
+                badgeColor: "bg-emerald-500",
+                previewLatex: String.raw`3{,}375 \times 19{,}29 \to 3 + 2 = 5`,
+                enunciado: () => (
+                    <span>¿Cuántas cifras decimales tendrá el producto de <MathDisplay inline latex="3{,}375 \times 19{,}29" />?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Primer factor",
+                        latex: String.raw`3{,}\color{#0284c7}{375} \implies \text{tiene } \mathbf{3} \text{ cifras decimales}`,
+                        robotSpeech: "Analizamos el primer factor: después de la coma en 3,375 hay 3 cifras (3, 7 y 5)."
+                    },
+                    {
+                        badge: "2. Segundo factor",
+                        latex: String.raw`19{,}\color{#db2777}{29} \implies \text{tiene } \mathbf{2} \text{ cifras decimales}`,
+                        robotSpeech: "Analizamos el segundo factor: después de la coma en 19,29 hay 2 cifras (2 y 9)."
+                    },
+                    {
+                        badge: "3. Verificar última cifra",
+                        latex: String.raw`5 \times 9 = 45 \neq \ldots 0 \quad (\text{ninguna cifra se elimina})`,
+                        robotSpeech: "Verificamos el producto de las últimas cifras: 5 × 9 = 45. Como no termina en 0, ninguna cifra decimal desaparecerá."
+                    },
+                    {
+                        badge: "4. Propiedad y Respuesta",
+                        latex: String.raw`3 + 2 = \mathbf{5 \text{ cifras decimales}} \quad (65{,}10375)`,
+                        robotSpeech: "Sumamos las cifras decimales de ambos factores: 3 + 2 = 5 cifras decimales. ¡Comprobado: 65,10375!"
+                    }
+                ]
+            },
+
+            // ================= BLOQUE 2: PROBLEMAS DE APLICACIÓN =================
+            {
+                id: 6,
+                block: 2,
+                title: "Reto 6",
+                subtitle: "Chocolates de María",
+                cardGradient: "from-amber-500/55 to-orange-700/55",
+                badgeColor: "bg-amber-600",
+                previewLatex: String.raw`8 \times \text{S/ }17{,}80 = \text{S/ }142{,}40`,
+                enunciado: () => (
+                    <span>María desea comprar <strong>8 cajas de chocolates</strong> que cuestan <strong>S/17,80</strong> cada una, ¿cuánto gastará en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 8 \times \text{S/ }17{,}80`,
+                        robotSpeech: "María compra 8 cajas y cada una cuesta S/ 17,80. Debemos multiplicar 17,80 × 8."
+                    },
+                    {
+                        badge: "2. Multiplicar enteros",
+                        latex: String.raw`1\,780 \times 8 = 14\,240`,
+                        robotSpeech: "Multiplicamos como si fueran números enteros: 1 780 × 8 = 14 240."
+                    },
+                    {
+                        badge: "3. Ubicar la coma",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 142{\color{#ef4444},}40`,
+                        robotSpeech: "Como 17,80 tiene 2 cifras decimales, contamos 2 lugares desde la derecha y ubicamos la coma: 142,40."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{María gastará } \mathbf{\text{S/ }142{,}40} \text{ en total.}`,
+                        robotSpeech: "¡Listo! María gastará S/ 142,40 en total por las 8 cajas de chocolates."
+                    }
+                ]
+            },
+            {
+                id: 7,
+                block: 2,
+                title: "Reto 7",
+                subtitle: "Pantalones de Paula",
+                cardGradient: "from-indigo-500/55 to-blue-700/55",
+                badgeColor: "bg-indigo-600",
+                previewLatex: String.raw`6 \times \text{S/ }89{,}88 = \text{S/ }539{,}28`,
+                enunciado: () => (
+                    <span>Paula quiere comprar <strong>6 pantalones</strong>. Si cada pantalón cuesta <strong>S/89,88</strong>, ¿cuánto gastará Paula en la compra?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 6 \times \text{S/ }89{,}88`,
+                        robotSpeech: "Paula comprará 6 pantalones a S/ 89,88 cada uno. Planteamos la multiplicación 89,88 × 6."
+                    },
+                    {
+                        badge: "2. Multiplicar enteros",
+                        latex: String.raw`8\,988 \times 6 = 53\,928`,
+                        robotSpeech: "Multiplicamos como enteros: 8 988 × 6 = 53 928."
+                    },
+                    {
+                        badge: "3. Ubicar la coma",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 539{\color{#ef4444},}28`,
+                        robotSpeech: "89,88 tiene 2 cifras decimales. Contamos 2 lugares desde la derecha y colocamos la coma: 539,28."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{Paula gastará } \mathbf{\text{S/ }539{,}28} \text{ en la compra.}`,
+                        robotSpeech: "¡Perfecto! Paula gastará S/ 539,28 en total por los 6 pantalones."
+                    }
+                ]
+            },
+            {
+                id: 8,
+                block: 2,
+                title: "Reto 8",
+                subtitle: "Galletas de Omar",
+                cardGradient: "from-sky-500/55 to-cyan-700/55",
+                badgeColor: "bg-sky-600",
+                previewLatex: String.raw`12 \times \text{S/ }3{,}80 = \text{S/ }45{,}60`,
+                enunciado: () => (
+                    <span>Si Omar compra <strong>12 paquetes de galletas</strong> que cuestan <strong>S/ 3,80</strong> cada uno, ¿cuánto pagará Omar por dicha compra?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Pago} = 12 \times \text{S/ }3{,}80`,
+                        robotSpeech: "Omar compra 12 paquetes de galletas a S/ 3,80 cada uno. Multiplicaremos 3,80 × 12."
+                    },
+                    {
+                        badge: "2. Productos parciales",
+                        latex: String.raw`380 \times 2 = 760 \quad;\quad 380 \times 10 = 3\,800`,
+                        robotSpeech: "Calculamos los productos parciales como enteros: 380 × 2 = 760 y 380 × 10 = 3 800."
+                    },
+                    {
+                        badge: "3. Sumar parciales",
+                        latex: String.raw`760 + 3\,800 = 4\,560`,
+                        robotSpeech: "Sumamos ambos productos parciales: 760 + 3 800 = 4 560."
+                    },
+                    {
+                        badge: "4. Ubicar 2 decimales",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 45{\color{#ef4444},}60`,
+                        robotSpeech: "Como 3,80 tiene 2 cifras decimales, contamos 2 lugares desde la derecha: 45,60."
+                    },
+                    {
+                        badge: "5. Respuesta",
+                        latex: String.raw`\text{Omar pagará } \mathbf{\text{S/ }45{,}60} \text{ por la compra.}`,
+                        robotSpeech: "¡Excelente! Omar pagará S/ 45,60 por los 12 paquetes de galletas."
+                    }
+                ]
+            },
+            {
+                id: 9,
+                block: 2,
+                title: "Reto 9",
+                subtitle: "Bombones de Javier",
+                cardGradient: "from-pink-500/55 to-rose-700/55",
+                badgeColor: "bg-pink-600",
+                previewLatex: String.raw`24 \times \text{S/ }17{,}89 = \text{S/ }429{,}36`,
+                enunciado: () => (
+                    <span>Javier compra <strong>24 cajas de bombones</strong> que cuestan <strong>S/ 17,89</strong> cada una. ¿Cuánto gasta Javier en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 24 \times \text{S/ }17{,}89`,
+                        robotSpeech: "Javier compra 24 cajas de bombones a S/ 17,89 cada una. Vamos a multiplicar 17,89 × 24."
+                    },
+                    {
+                        badge: "2. Productos parciales",
+                        latex: String.raw`1\,789 \times 4 = 7\,156 \quad;\quad 1\,789 \times 20 = 35\,780`,
+                        robotSpeech: "Obtenemos los productos parciales: 1 789 × 4 = 7 156 y 1 789 × 20 = 35 780."
+                    },
+                    {
+                        badge: "3. Sumar parciales",
+                        latex: String.raw`7\,156 + 35\,780 = 42\,936`,
+                        robotSpeech: "Sumamos ambos parciales ordenadamente: 7 156 + 35 780 = 42 936."
+                    },
+                    {
+                        badge: "4. Ubicar 2 decimales",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 429{\color{#ef4444},}36`,
+                        robotSpeech: "Como 17,89 tiene 2 cifras decimales, contamos 2 lugares desde la derecha: 429,36."
+                    },
+                    {
+                        badge: "5. Respuesta",
+                        latex: String.raw`\text{Javier gasta } \mathbf{\text{S/ }429{,}36} \text{ en total.}`,
+                        robotSpeech: "¡Muy bien! Javier gasta S/ 429,36 en total por las 24 cajas de bombones."
+                    }
+                ]
+            },
+            {
+                id: 10,
+                block: 2,
+                title: "Reto 10",
+                subtitle: "Compras de Sofía",
+                cardGradient: "from-fuchsia-500/55 to-purple-700/55",
+                badgeColor: "bg-fuchsia-600",
+                previewLatex: String.raw`175{,}40 + 85{,}90 + 41{,}70 = \text{S/ }303{,}00`,
+                enunciado: () => (
+                    <span>Si Sofía compra <strong>4 blusas</strong> a S/43,85 cada una, <strong>un par de zapatos</strong> a S/85,90 y <strong>3 pañoletas</strong> a S/13,90 cada una; ¿cuánto pagará Sofía en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Costo de 4 blusas",
+                        latex: String.raw`43{,}85 \times 4 = \text{S/ }175{,}40`,
+                        robotSpeech: "Calculamos primero el subtotal de las 4 blusas: 43,85 × 4 = S/ 175,40."
+                    },
+                    {
+                        badge: "2. Par de zapatos",
+                        latex: String.raw`85{,}90 \times 1 = \text{S/ }85{,}90`,
+                        robotSpeech: "Registramos el costo del par de zapatos en nuestra boleta: S/ 85,90."
+                    },
+                    {
+                        badge: "3. Costo de 3 pañoletas",
+                        latex: String.raw`13{,}90 \times 3 = \text{S/ }41{,}70`,
+                        robotSpeech: "Calculamos el subtotal de las 3 pañoletas: 13,90 × 3 = S/ 41,70."
+                    },
+                    {
+                        badge: "4. Suma total alineada",
+                        latex: String.raw`175{,}40 + 85{,}90 + 41{,}70 = \mathbf{\text{S/ }303{,}00}`,
+                        robotSpeech: "¡Alineamos todas las comas decimales en la columna roja y sumamos! Sofía pagará S/ 303,00 en total."
+                    }
+                ]
+            },
+            {
+                id: 11,
+                block: 2,
+                title: "Reto 11",
+                subtitle: "Artefactos de Lucía",
+                cardGradient: "from-teal-500/55 to-emerald-700/55",
+                badgeColor: "bg-teal-600",
+                previewLatex: String.raw`5\,383{,}96 + 2\,996{,}70 = \text{S/ }8\,380{,}66`,
+                enunciado: () => (
+                    <span>Lucía desea comprar <strong>4 televisores</strong> a S/1 345,99 y <strong>3 tabletas</strong> a S/998,9. ¿Cuánto gastará Lucía si compra los 7 artefactos?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Costo de 4 televisores",
+                        latex: String.raw`1\,345{,}99 \times 4 = \text{S/ }5\,383{,}96`,
+                        robotSpeech: "Multiplicamos el precio de cada televisor por 4: 1 345,99 × 4 = S/ 5 383,96."
+                    },
+                    {
+                        badge: "2. Costo de 3 tabletas",
+                        latex: String.raw`998{,}9 \times 3 = \text{S/ }2\,996{,}7{\color{#d97706}0}`,
+                        robotSpeech: "Multiplicamos 998,9 × 3 = 2 996,7. Agregamos un cero en los centésimos (2 996,70) para alinear con las comas."
+                    },
+                    {
+                        badge: "3. Sumar subtotales",
+                        latex: String.raw`5\,383{,}96 + 2\,996{,}70 = \text{S/ }8\,380{,}66`,
+                        robotSpeech: "Sumamos ambos subtotales alineando la coma decimal en la columna roja: 5 383,96 + 2 996,70 = S/ 8 380,66."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{Lucía gastará } \mathbf{\text{S/ }8\,380{,}66} \text{ por los 7 artefactos.}`,
+                        robotSpeech: "¡Misión cumplida! Lucía gastará S/ 8 380,66 si compra los 7 artefactos."
+                    }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // 11. SELECTOR DE VISUALIZADOR PARA EL PANEL DERECHO
+        // =========================================================================
+        const RightPanelGraphic = memo(({ exercise, step }) => {
+            const curStep = exercise.steps[step];
+            if (curStep.graphic && curStep.graphic.type === 'jump') {
+                return <CommaJumpVisualizer key={`jump-${exercise.id}-${step}`} config={curStep.graphic} />;
+            }
+            if (curStep.graphic && curStep.graphic.type === 'special005') {
+                return <SpecialProductVisualizer />;
+            }
+            if (exercise.verticalConfig) {
+                return <VerticalMultVisualizer config={exercise.verticalConfig} step={step} />;
+            }
+            if (exercise.id === 5) {
+                return <DecimalCountVisualizer step={step} />;
+            }
+            return <ShoppingVisualizer exerciseId={exercise.id} step={step} />;
+        });
+
+        // =========================================================================
+        // 12. COMPONENTES AMBIENTALES: FONDO FLOTANTE, CONFETI Y ROBOT ASISTENTE
+        // =========================================================================
+        const FloatingBackground = memo(() => {
+            const symbols = ['×', ',', '0', '10', '100', '0,1', 'S/', '=', '+'];
+            const elements = Array.from({ length: 28 }).map((_, i) => ({
+                id: i,
+                symbol: symbols[i % symbols.length],
+                left: `${(i * 3.6 + 2) % 96}%`,
+                animationDuration: `${11 + (i % 7) * 2.1}s`,
+                animationDelay: `-${(i * 1.4) % 20}s`,
+                fontSize: `${1.25 + (i % 4) * 0.55}rem`,
+                opacity: 0.08 + (i % 3) * 0.04
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    {elements.map((el) => (
+                        <div
+                            key={el.id}
+                            className="absolute text-white font-black animate-floatUp select-none drop-shadow-lg"
+                            style={{
+                                left: el.left,
+                                bottom: '-15%',
+                                fontSize: el.fontSize,
+                                opacity: el.opacity,
+                                animationDuration: el.animationDuration,
+                                animationDelay: el.animationDelay
+                            }}
+                        >
+                            {el.symbol}
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        const Confetti = memo(() => {
+            const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa', '#fb923c'];
+            const pieces = Array.from({ length: 110 }).map((_, i) => ({
+                id: i,
+                left: `${50 + (Math.random() * 20 - 10)}%`,
+                color: colors[i % colors.length],
+                tx: `${(Math.random() - 0.5) * 820}px`,
+                ty: `${(Math.random() - 1) * 760}px`,
+                rot: `${Math.random() * 720}deg`,
+                delay: `${Math.random() * 0.2}s`
+            }));
+            return (
+                <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden">
+                    {pieces.map((p) => (
+                        <div
+                            key={p.id}
+                            className="absolute w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full animate-confettiExplosion shadow-sm"
+                            style={{
+                                backgroundColor: p.color,
+                                '--tx': p.tx,
+                                '--ty': p.ty,
+                                '--rot': p.rot,
+                                animationDelay: p.delay,
+                                left: p.left,
+                                top: '50%'
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        });
+
+        const RobotAssistant = ({ step, maxSteps }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1 && maxSteps > 1;
+
+            const getContainerAnim = () => {
+                if (isFinalStep) return 'animate-robotJump';
+                if (isThinking) return 'animate-robotThinkTilt';
+                return 'animate-robotFloat';
+            };
+            const getArmLAnim = () => {
+                if (isFinalStep) return 'rotate-[150deg] animate-pulse';
+                if (step > 0) return 'animate-robotTalkArmL';
+                return 'rotate-45';
+            };
+            const getArmRAnim = () => {
+                if (isFinalStep) return '-rotate-[150deg] animate-pulse';
+                if (step > 0) return 'animate-robotTalkArmR';
+                return '-rotate-45';
+            };
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-1.5"><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-4 h-2.5 bg-rose-400 rounded-b-full mt-1"></div>;
+                if (step === 0) return <div className="w-3 h-1 bg-cyan-300 rounded-full mt-1"></div>;
+                return <div className="w-2.5 h-2.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-xl select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-3 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-white to-slate-200 rounded-xl border-[2.5px] border-indigo-400 shadow-xl flex flex-col items-center justify-center p-1">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1 shadow-inner border-[1.5px] border-indigo-500">
+                            {getEyes()}
+                            {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        // =========================================================================
+        // 13. APLICACIÓN PRINCIPAL
+        // =========================================================================
+        function App() {
+            const [view, setView] = useState('home');
+            const [exIdx, setExIdx] = useState(0);
+            const [step, setStep] = useState(0);
+            const [isMuted, setIsMuted] = useState(false);
+            const scrollContainerRef = useRef(null);
+
+            const curEx = EXERCISES[exIdx];
+            const maxSteps = curEx.steps.length - 1;
+            const curStepData = curEx.steps[step];
+            const EnunciadoText = curEx.enunciado;
+
+            const handleInteraction = () => {
+                AudioController.init();
+                AudioController.startBGM();
+            };
+
+            const startExercise = (index) => {
+                handleInteraction();
+                AudioController.play('swoosh');
+                setExIdx(index);
+                setStep(0);
+                setView('lab');
+            };
+
+            const nextStep = () => {
+                handleInteraction();
+                if (step < maxSteps) {
+                    const next = step + 1;
+                    setStep(next);
+                    AudioController.play(next === maxSteps ? 'success' : 'pop');
+                } else {
+                    AudioController.play('swoosh');
+                    if (exIdx < EXERCISES.length - 1) {
+                        setExIdx(exIdx + 1);
+                        setStep(0);
+                    } else {
+                        setView('home');
+                    }
+                }
+            };
+
+            const prevStep = () => {
+                handleInteraction();
+                if (step > 0) {
+                    setStep(step - 1);
+                    AudioController.play('pop-reverse');
+                }
+            };
+
+            const toggleMute = () => {
+                handleInteraction();
+                setIsMuted(AudioController.toggleMute());
+            };
+
+            useEffect(() => {
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                }
+            }, [step, exIdx, view]);
+
+            // ------------------------- PORTADA (2 BLOQUES, 11 RETOS) -------------------------
+            if (view === 'home') {
+                const block1 = EXERCISES.filter(e => e.block === 1);
+                const block2 = EXERCISES.filter(e => e.block === 2);
+
+                const renderCard = (ex) => {
+                    const idx = EXERCISES.findIndex(item => item.id === ex.id);
+                    return (
+                        <button
+                            key={ex.id}
+                            onClick={() => startExercise(idx)}
+                            className="group text-left p-4 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border-[3px] border-white/35 hover:border-yellow-300 hover:-translate-y-1.5 hover:shadow-[0_16px_30px_rgba(0,0,0,0.38)] transition-all flex flex-col relative overflow-hidden shadow-lg min-h-[10.5rem]"
+                        >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${ex.cardGradient} opacity-85 group-hover:opacity-100 transition-opacity`}></div>
+                            <div className="relative z-10 flex-1 flex flex-col">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`${ex.badgeColor} text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm`}>
+                                        {ex.title}
+                                    </span>
+                                    <span className="text-white/95 text-xs font-extrabold bg-black/25 px-2.5 py-0.5 rounded-full">
+                                        {ex.steps.length} pasos
+                                    </span>
+                                </div>
+                                <div className="flex-1 my-1.5 bg-white/95 rounded-xl px-2.5 py-2 text-slate-900 shadow-inner flex items-center justify-center border border-white/60 pointer-events-none math-card">
+                                    <MathDisplay latex={ex.previewLatex} align="center" />
+                                </div>
+                                <div className="text-white text-sm sm:text-base font-black text-center mt-1.5 drop-shadow-md">
+                                    {ex.subtitle}
+                                </div>
+                            </div>
+                        </button>
+                    );
+                };
+
+                return (
+                    <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#1e3a8a] via-[#4338ca] to-[#be185d] flex flex-col items-center justify-start p-4 sm:p-6 relative font-fun overflow-y-auto scrollbar-hide">
+                        <FloatingBackground />
+
+                        {/* Barra superior */}
+                        <div className="w-[96%] max-w-[1400px] z-20 flex items-center justify-between mb-5 mt-1">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-yellow-300 bg-white/15 backdrop-blur-md text-yellow-300 font-black tracking-wider uppercase shadow-md text-xs sm:text-base">
+                                <Rocket className="w-5 h-5 text-yellow-300" /> TuProfe20 Lab
+                            </div>
+                            <button onClick={toggleMute} title="Audio" className="p-2.5 sm:p-3 rounded-2xl bg-white/20 border-2 border-white/30 backdrop-blur-md text-white hover:bg-white/30 transition-all active:scale-95">
+                                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                            </button>
+                        </div>
+
+                        {/* Encabezado de portada */}
+                        <div className="relative z-10 text-center w-[96%] max-w-[1400px] flex flex-col items-center pb-12">
+                            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 border border-white/30 text-cyan-200 font-black text-xs sm:text-sm uppercase tracking-widest mb-3 shadow-sm">
+                                Aritmética • Multiplicación de Números Decimales
+                            </div>
+                            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-3 drop-shadow-[0_5px_0_rgba(0,0,0,0.3)] tracking-tight leading-tight uppercase">
+                                MULTIPLICACIÓN DE <span className="text-yellow-300 underline decoration-wavy decoration-cyan-400 underline-offset-8">DECIMALES Y APLICACIONES</span>
+                            </h1>
+                            <p className="text-sm sm:text-lg lg:text-xl text-purple-100 mb-8 font-bold max-w-3xl leading-relaxed">
+                                Domina el salto de la coma decimal, la multiplicación vertical y problemas de compras paso a paso ✨🤖
+                            </p>
+
+                            {/* BLOQUE 1 */}
+                            <div className="w-full mb-8">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="px-4 py-1.5 rounded-full bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-widest shadow-md">
+                                        Bloque 1 • Técnicas y Propiedades (Retos 1 al 5)
+                                    </span>
+                                    <div className="flex-1 h-[2px] bg-white/25 rounded-full"></div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                    {block1.map(renderCard)}
+                                </div>
+                            </div>
+
+                            {/* BLOQUE 2 */}
+                            <div className="w-full">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="px-4 py-1.5 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-widest shadow-md">
+                                        Bloque 2 • Problemas de Aplicación (Retos 6 al 11)
+                                    </span>
+                                    <div className="flex-1 h-[2px] bg-white/25 rounded-full"></div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {block2.map(renderCard)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ------------------------- VISTA LABORATORIO -------------------------
+            return (
+                <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#312e81] to-[#831843] text-slate-800 flex flex-col p-2 sm:p-3.5 relative font-fun overflow-hidden">
+                    <FloatingBackground />
+                    {step === maxSteps && <Confetti />}
+
+                    {/* Barra superior */}
+                    <div className="shrink-0 relative z-10 w-[98%] max-w-[1440px] mx-auto flex justify-between items-center mb-2.5 px-1 gap-2">
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => { AudioController.play('swoosh'); setView('home'); }}
+                                className="flex items-center justify-center px-3.5 py-2 rounded-[1rem] bg-white/10 border-[2.5px] border-white/30 backdrop-blur-md text-white font-black hover:bg-white/20 transition-all shadow-lg active:scale-95 text-xs sm:text-sm"
+                            >
+                                <Home className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Portada</span>
+                            </button>
+                            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-yellow-300/40 text-yellow-300 font-black text-xs uppercase tracking-wider">
+                                <Rocket className="w-4 h-4" /> TuProfe20 Lab
+                            </div>
+                        </div>
+
+                        {/* Selector numérico 1 al 11 */}
+                        <div className="flex items-center gap-1 sm:gap-1.5 bg-black/35 p-1.5 rounded-[1rem] border-2 border-white/20 backdrop-blur-md shadow-lg overflow-x-auto scrollbar-hide max-w-[65vw]">
+                            {EXERCISES.map((ex, i) => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => startExercise(i)}
+                                    className={`shrink-0 w-7 h-7 sm:w-9 sm:h-9 rounded-[0.7rem] font-black text-xs sm:text-sm transition-all ${
+                                        exIdx === i
+                                            ? 'bg-yellow-400 text-slate-900 scale-110 shadow-[0_0_12px_rgba(250,204,21,0.75)]'
+                                            : 'text-white hover:bg-white/20'
+                                    }`}
+                                >
+                                    {ex.id}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button onClick={toggleMute} title="Audio" className="p-2 sm:p-2.5 rounded-[1rem] bg-white/10 border-[2.5px] border-white/30 text-white hover:bg-white/20 transition-all shadow-lg active:scale-95">
+                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        </button>
+                    </div>
+
+                    {/* Pizarra principal */}
+                    <div className="flex-1 min-h-0 relative z-10 w-[98%] max-w-[1440px] mx-auto bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border-[5px] sm:border-[7px] border-slate-100 shadow-[0_25px_55px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+
+                        {/* Encabezado oscuro con enunciado */}
+                        <div className="shrink-0 bg-slate-900 border-b-[4px] border-cyan-500 px-4 py-2.5 sm:px-6 sm:py-3 flex flex-col justify-center relative shadow-md z-20">
+                            <div className="flex justify-between items-center w-full max-w-6xl mx-auto mb-1">
+                                <span className="bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm px-3 py-0.5 rounded-md uppercase tracking-widest shadow-sm">
+                                    {curEx.title}
+                                </span>
+                                <span className="text-yellow-300 font-extrabold text-xs sm:text-sm bg-white/10 px-3 py-0.5 rounded-md">
+                                    {curEx.subtitle}
+                                </span>
+                            </div>
+                            <div className="text-white font-bold text-sm sm:text-lg md:text-xl text-center w-full max-w-5xl mx-auto leading-snug math-enunciado">
+                                <EnunciadoText />
+                            </div>
+                        </div>
+
+                        {/* Área dividida 50% / 50% */}
+                        <div className="flex-1 flex flex-col md:flex-row bg-slate-50 overflow-hidden relative">
+
+                            {/* PANEL IZQUIERDO: DESARROLLO FLUIDO SIN CAJAS PESADAS */}
+                            <div
+                                ref={scrollContainerRef}
+                                className="w-full md:w-1/2 flex-1 px-5 py-4 sm:px-7 sm:py-5 overflow-y-auto scrollbar-hide flex flex-col gap-3.5 pb-20 relative z-10 border-b-2 md:border-b-0 md:border-r-2 border-slate-200/70"
+                            >
+                                <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#0f172a_1.5px,transparent_1.5px)] [background-size:20px_20px] pointer-events-none"></div>
+
+                                <div className="relative z-10 flex items-center justify-between border-b border-slate-200 pb-2">
+                                    <span className="text-xs font-black uppercase tracking-widest text-indigo-600">
+                                        Desarrollo Paso a Paso
+                                    </span>
+                                    <span className="text-xs font-extrabold text-slate-400">
+                                        {curEx.block === 1 ? 'Técnicas Decimales' : 'Problema de Aplicación'}
+                                    </span>
+                                </div>
+
+                                {curEx.steps.slice(0, step + 1).map((s, idx) => {
+                                    const isCurrent = idx === step;
+                                    const isFinal = isCurrent && step === maxSteps;
+                                    return (
+                                        <div
+                                            key={`${exIdx}-${idx}`}
+                                            className={`relative z-10 pl-4 py-1.5 transition-all duration-300 border-l-[4px] border-b border-slate-200/60 last:border-b-0 ${
+                                                isFinal
+                                                    ? 'border-l-amber-400 animate-finalGlow rounded-r-xl pr-3 opacity-100 animate-slideInRight'
+                                                    : isCurrent
+                                                        ? 'border-l-cyan-500 opacity-100 animate-slideInRight'
+                                                        : 'border-l-slate-300 opacity-50'
+                                            }`}
+                                        >
+                                            <div className="mb-1 flex items-center gap-2">
+                                                <span
+                                                    className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full font-black text-[11px] sm:text-xs tracking-wide ${
+                                                        isFinal
+                                                            ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-sm'
+                                                            : isCurrent
+                                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm'
+                                                                : 'bg-slate-200 text-slate-600'
+                                                    }`}
+                                                >
+                                                    {isCurrent && <Sparkles className="w-3.5 h-3.5" />}
+                                                    {s.badge}
+                                                </span>
+                                            </div>
+                                            <div className={`py-0.5 ${isFinal ? 'math-final' : isCurrent ? 'math-current' : 'math-history'}`}>
+                                                <MathDisplay latex={s.latex} align="left" />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* PANEL DERECHO: ESQUEMA GRÁFICO REACTIVO */}
+                            <div className="w-full md:w-1/2 flex-1 bg-white/85 p-3 sm:p-5 flex flex-col items-center justify-center relative z-10 pointer-events-none">
+                                <h3 className="absolute top-3 left-4 font-black text-slate-400 uppercase tracking-widest text-[11px] sm:text-xs flex items-center gap-1.5 z-20">
+                                    <Shapes className="w-4 h-4 text-cyan-500" /> Esquema Interactivo
+                                </h3>
+                                <div className="w-full h-full flex items-center justify-center pt-5 pointer-events-auto">
+                                    <RightPanelGraphic exercise={curEx} step={step} />
+                                </div>
+                            </div>
+
+                            {/* Pizarra superpuesta */}
+                            <DrawingCanvas />
+                        </div>
+
+                        {/* Barra del Robot Asistente */}
+                        <div className="shrink-0 bg-white w-full px-4 py-2 sm:px-6 sm:py-2.5 flex items-center gap-3 sm:gap-5 border-t-[3px] border-slate-100 z-30 relative shadow-[0_-8px_18px_rgba(0,0,0,0.04)]">
+                            <div className="shrink-0 absolute -top-9 sm:relative sm:top-0 left-3 sm:left-0 drop-shadow-xl z-50">
+                                <RobotAssistant step={step} maxSteps={maxSteps} />
+                            </div>
+                            <div className="flex-1 text-xs sm:text-sm md:text-base font-bold text-slate-700 leading-snug bg-blue-50/90 px-3 py-2 sm:px-4 sm:py-2.5 rounded-[1rem] border-2 border-blue-100 min-h-[2.8rem] flex items-center shadow-sm ml-[3.4rem] sm:ml-0">
+                                <div key={`speech-${exIdx}-${step}`} className="animate-slideInRight w-full">
+                                    {curStepData.robotSpeech}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Controles inferiores */}
+                        <div className="shrink-0 bg-gradient-to-b from-[#e0e7ff] to-[#c7d2fe] p-2 sm:p-2.5 w-full flex flex-col items-center border-t-[3px] border-white z-40">
+                            <div className="flex justify-center items-stretch w-full max-w-4xl gap-2 sm:gap-3 h-9 sm:h-10">
+                                <button
+                                    onClick={prevStep}
+                                    disabled={step === 0}
+                                    className="flex-[0.8] bg-[#a5b4fc] border-b-[4px] border-[#6366f1] text-[#312e81] rounded-l-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] disabled:opacity-40 transition-all hover:bg-[#c7d2fe]"
+                                >
+                                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                    <span className="hidden sm:inline">Atrás</span>
+                                </button>
+                                <div className="bg-[#6366f1] text-white font-black px-3 sm:px-5 text-xs sm:text-sm flex items-center justify-center border-b-[4px] border-[#4338ca] shadow-inner whitespace-nowrap min-w-[4.5rem]">
+                                    Paso {step + 1}/{maxSteps + 1}
+                                </div>
+                                <button
+                                    onClick={nextStep}
+                                    className={`flex-[2] border-b-[4px] text-white rounded-r-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] transition-all shadow-sm hover:brightness-110 ${
+                                        step === maxSteps
+                                            ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse'
+                                            : 'bg-gradient-to-r from-[#06b6d4] to-[#0284c7] border-[#0369a1]'
+                                    }`}
+                                >
+                                    <span>
+                                        {step < maxSteps
+                                            ? '¡Siguiente Paso!'
+                                            : exIdx < EXERCISES.length - 1
+                                                ? `Siguiente Reto (${curEx.id + 1})`
+                                                : '¡Volver a Portada!'}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
