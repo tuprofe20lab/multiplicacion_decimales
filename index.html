@@ -165,7 +165,95 @@
 
             if (inline) return <span ref={containerRef} className={`inline-block align-middle ${className}`} />;
             return (
-                <div className={`math-flow-line scrollbar-hide ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}> <div ref={containerRef} className={align === 'center' ? 'text-center' : 'text-left'} /> </div> ); });  // ========================================================================= // 3. PIZARRA INTERACTIVA COMPLETA (SIN SONIDO) // ========================================================================= const DrawingCanvas = () => { const canvasRef = useRef(null); const [isDrawing, setIsDrawing] = useState(false); const [isDrawMode, setIsDrawMode] = useState(false); const [tool, setTool] = useState('pen'); const [isSnapMode, setIsSnapMode] = useState(false); const [penColor, setPenColor] = useState('#ef4444'); const [penWidth, setPenWidth] = useState(6); const penPointsRef = useRef([]); const activePointerRef = useRef(null); const savedImageRef = useRef(null); const startPosRef = useRef({ x: 0, y: 0 }); const historyRef = useRef([]);  useEffect(() => { const canvas = canvasRef.current; if (!canvas \vert{}\vert{} !canvas.parentElement) return; const updateSize = (entries) => { for (let entry of entries) { const { width, height } = entry.contentRect; const ctx = canvas.getContext('2d'); let imgData = null; if (canvas.width > 0 && canvas.height > 0) { try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) {} } canvas.width = width; canvas.height = height; if (imgData) ctx.putImageData(imgData, 0, 0); } }; const observer = new ResizeObserver(updateSize); observer.observe(canvas.parentElement); return () => observer.disconnect(); }, []);  const renderPen = (points, straight = false) => { const ctx = canvasRef.current.getContext('2d'); ctx.putImageData(savedImageRef.current, 0, 0); const angle = -15 * Math.PI / 180; const c = Math.cos(angle), s = Math.sin(angle); const local = points.map(p => ({ x: c * p.x + s * p.y, y: (-s * p.x + c * p.y) / 0.5 })); ctx.save(); ctx.transform(c, s, -0.5 * s, 0.5 * c, 0, 0); ctx.lineWidth = penWidth; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = penColor; ctx.fillStyle = penColor; ctx.globalCompositeOperation = 'source-over'; ctx.beginPath(); ctx.moveTo(local[0].x, local[0].y); if (local.length === 1) { ctx.arc(local[0].x, local[0].y, penWidth / 2, 0, Math.PI * 2); ctx.fill(); } else { if (!straight) { for (let i = 1; i < local.length - 1; i++) { const midpoint = { x: (local[i].x + local[i + 1].x) / 2, y: (local[i].y + local[i + 1].y) / 2 }; ctx.quadraticCurveTo(local[i].x, local[i].y, midpoint.x, midpoint.y); } } const last = local[local.length - 1]; ctx.lineTo(last.x, last.y); ctx.stroke(); } ctx.restore(); };  const startDrawing = (e) => { if (!isDrawMode \vert{}\vert{} activePointerRef.current !== null \vert{}\vert{} (e.pointerType === 'mouse' && e.button !== 0)) return; const canvas = canvasRef.current; const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();  historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = tool === 'highlighter' ? 24 : penWidth; ctx.strokeStyle = tool === 'highlighter' ? `${penColor}4D` : penColor;
+                <div className={`math-flow-line scrollbar-hide ${align === 'center' ? 'justify-center' : 'justify-start'} ${className}`}>
+                    <div ref={containerRef} className={align === 'center' ? 'text-center' : 'text-left'} />
+                </div>
+            );
+        });
+
+        // =========================================================================
+        // 3. PIZARRA INTERACTIVA COMPLETA (SIN SONIDO)
+        // =========================================================================
+        const DrawingCanvas = () => {
+            const canvasRef = useRef(null);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [isDrawMode, setIsDrawMode] = useState(false);
+            const [tool, setTool] = useState('pen');
+            const [isSnapMode, setIsSnapMode] = useState(false);
+            const [penColor, setPenColor] = useState('#ef4444');
+            const [penWidth, setPenWidth] = useState(6);
+            const penPointsRef = useRef([]);
+            const activePointerRef = useRef(null);
+            const savedImageRef = useRef(null);
+            const startPosRef = useRef({ x: 0, y: 0 });
+            const historyRef = useRef([]);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas || !canvas.parentElement) return;
+                const updateSize = (entries) => {
+                    for (let entry of entries) {
+                        const { width, height } = entry.contentRect;
+                        const ctx = canvas.getContext('2d');
+                        let imgData = null;
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            try { imgData = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch (e) {}
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        if (imgData) ctx.putImageData(imgData, 0, 0);
+                    }
+                };
+                const observer = new ResizeObserver(updateSize);
+                observer.observe(canvas.parentElement);
+                return () => observer.disconnect();
+            }, []);
+
+            const renderPen = (points, straight = false) => {
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.putImageData(savedImageRef.current, 0, 0);
+                const angle = -15 * Math.PI / 180;
+                const c = Math.cos(angle), s = Math.sin(angle);
+                const local = points.map(p => ({ x: c * p.x + s * p.y, y: (-s * p.x + c * p.y) / 0.5 }));
+                ctx.save();
+                ctx.transform(c, s, -0.5 * s, 0.5 * c, 0, 0);
+                ctx.lineWidth = penWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = penColor;
+                ctx.fillStyle = penColor;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.beginPath();
+                ctx.moveTo(local[0].x, local[0].y);
+                if (local.length === 1) {
+                    ctx.arc(local[0].x, local[0].y, penWidth / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    if (!straight) {
+                        for (let i = 1; i < local.length - 1; i++) {
+                            const midpoint = { x: (local[i].x + local[i + 1].x) / 2, y: (local[i].y + local[i + 1].y) / 2 };
+                            ctx.quadraticCurveTo(local[i].x, local[i].y, midpoint.x, midpoint.y);
+                        }
+                    }
+                    const last = local[local.length - 1];
+                    ctx.lineTo(last.x, last.y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            };
+
+            const startDrawing = (e) => {
+                if (!isDrawMode || activePointerRef.current !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const rect = canvas.getBoundingClientRect();
+
+                historyRef.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = tool === 'highlighter' ? 24 : penWidth;
+                ctx.strokeStyle = tool === 'highlighter' ? `${penColor}4D` : penColor;
                 ctx.globalCompositeOperation = tool === 'highlighter' ? 'multiply' : 'source-over';
 
                 const startX = e.clientX - rect.left;
@@ -283,16 +371,114 @@
                     {isDrawMode && (
                         <div className="absolute top-1/2 right-3 -translate-y-1/2 z-[110] flex flex-col gap-2.5 p-2 bg-white/90 backdrop-blur-md rounded-xl border-[3px] border-slate-200 shadow-xl pointer-events-auto">
                             {colors.map(c => (
-                                <button key={c.hex} onClick={() => setPenColor(c.hex)} title={c.name} className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-[3px] shadow-sm transition-all hover:scale-110 active:scale-95 ${c.tw}${penColor === c.hex ? 'border-white outline outline-[3px] outline-slate-800 scale-110' : 'border-black/20'}`} />
+                                <button key={c.hex} onClick={() => setPenColor(c.hex)} title={c.name} className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-[3px] shadow-sm transition-all hover:scale-110 active:scale-95 ${c.tw} ${penColor === c.hex ? 'border-white outline outline-[3px] outline-slate-800 scale-110' : 'border-black/20'}`} />
                             ))}
                         </div>
                     )}
                     <canvas
                         ref={canvasRef}
                         style={{ zIndex: 100, pointerEvents: isDrawMode ? 'auto' : 'none', touchAction: isDrawMode ? 'none' : 'auto' }}
-                        className={`absolute inset-0 z-[100] touch-none ${isDrawMode ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`} onPointerDown={startDrawing} onPointerMove={draw} onPointerUp={e => { if (activePointerRef.current === e.pointerId) { draw(e); stopDrawing(); } }} onPointerLeave={e => { if (!e.currentTarget.hasPointerCapture(e.pointerId)) stopDrawing(); }} onLostPointerCapture={stopDrawing} onPointerCancel={stopDrawing} /> </> ); };  // ========================================================================= // 4. VISUALIZADOR 1: SALTO MANUAL DE LA COMA ROJA (DERECHA E IZQUIERDA) // ========================================================================= const CommaJumpVisualizer = memo(({ config }) => { const { direction,       // 'right' \vert{} 'left' digits,          // array de celdas: { char, added?: boolean, fade?: boolean, ellipsis?: boolean } startSlot,       // índice inicial de la coma (borde entre celdas) jumps,           // cantidad de saltos (1, 2 o 3) factorLabel,     // "10", "100", "1 000", "0,1", "0,01", "0,010" ruleText,        // texto explicativo superior finalDisplay,    // resultado limpio final noteText,        // nota breve sobre ceros agregados o eliminados hideCommaAtEnd   // true si el resultado es entero } = config;  const [currentJump, setCurrentJump] = useState(0);  useEffect(() => { setCurrentJump(0); }, [config]);  const moveComma = () => { if (currentJump < jumps) { setCurrentJump(j => j + 1); } };  const resetComma = () => { setCurrentJump(0); };  const n = digits.length; const cellW = Math.min(54, Math.floor(460 / Math.max(n, 5))); const totalW = n * cellW; const startX = (540 - totalW) / 2; const boxY = 148; const boxH = 62;  const commaSlot = direction === 'right' ? startSlot + currentJump : startSlot - currentJump; const commaX = startX + commaSlot * cellW; const finished = currentJump >= jumps;  const renderFactorBadge = () => { if (direction === 'right') { const zeros = factorLabel.slice(1); return ( <g> <rect x="85" y="14" width="370" height="44" rx="14" fill="#fef3c7" stroke="#f59e0b" strokeWidth="2.5" /> <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#78350f"> Factor: <tspan fill="#0f172a">1</tspan><tspan fill="#dc2626" fontSize="16">{zeros}</tspan>  →  {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la DERECHA ➔ </text> <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#92400e"> {ruleText} </text> </g> ); } return ( <g> <rect x="65" y="14" width="410" height="44" rx="14" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2.5" /> <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#0c4a6e"> Factor: <tspan fill="#dc2626" fontSize="16">{factorLabel}</tspan>  →  ⬅ {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la IZQUIERDA </text> <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#0369a1"> {ruleText} </text> </g> ); };  return ( <div className="w-full h-full flex flex-col items-center justify-center relative"> <svg viewBox="0 0 540 355" className="w-full max-h-[360px]" role="img" aria-label="Animación manual del salto de la coma decimal"> {renderFactorBadge()}  {/* Arcos de salto acumulados */} {Array.from({ length: currentJump }).map((_, idx) => { const s0 = direction === 'right' ? startSlot + idx : startSlot - idx; const s1 = direction === 'right' ? s0 + 1 : s0 - 1; const x0 = startX + s0 * cellW; const x1 = startX + s1 * cellW; const midX = (x0 + x1) / 2; const peakY = boxY - 48; const arrowDir = direction === 'right' ? 1 : -1; return ( <g key={`arc-${idx}`}>
+                        className={`absolute inset-0 z-[100] touch-none ${isDrawMode ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'}`}
+                        onPointerDown={startDrawing}
+                        onPointerMove={draw}
+                        onPointerUp={e => { if (activePointerRef.current === e.pointerId) { draw(e); stopDrawing(); } }}
+                        onPointerLeave={e => { if (!e.currentTarget.hasPointerCapture(e.pointerId)) stopDrawing(); }}
+                        onLostPointerCapture={stopDrawing}
+                        onPointerCancel={stopDrawing}
+                    />
+                </>
+            );
+        };
+
+        // =========================================================================
+        // 4. VISUALIZADOR 1: SALTO MANUAL DE LA COMA ROJA (DERECHA E IZQUIERDA)
+        // =========================================================================
+        const CommaJumpVisualizer = memo(({ config }) => {
+            const {
+                direction,       // 'right' | 'left'
+                digits,          // array de celdas: { char, added?: boolean, fade?: boolean, ellipsis?: boolean }
+                startSlot,       // índice inicial de la coma (borde entre celdas)
+                jumps,           // cantidad de saltos (1, 2 o 3)
+                factorLabel,     // "10", "100", "1 000", "0,1", "0,01", "0,010"
+                ruleText,        // texto explicativo superior
+                finalDisplay,    // resultado limpio final
+                noteText,        // nota breve sobre ceros agregados o eliminados
+                hideCommaAtEnd   // true si el resultado es entero
+            } = config;
+
+            const [currentJump, setCurrentJump] = useState(0);
+
+            useEffect(() => {
+                setCurrentJump(0);
+            }, [config]);
+
+            const moveComma = () => {
+                if (currentJump < jumps) {
+                    setCurrentJump(j => j + 1);
+                }
+            };
+
+            const resetComma = () => {
+                setCurrentJump(0);
+            };
+
+            const n = digits.length;
+            const cellW = Math.min(54, Math.floor(460 / Math.max(n, 5)));
+            const totalW = n * cellW;
+            const startX = (540 - totalW) / 2;
+            const boxY = 148;
+            const boxH = 62;
+
+            const commaSlot = direction === 'right' ? startSlot + currentJump : startSlot - currentJump;
+            const commaX = startX + commaSlot * cellW;
+            const finished = currentJump >= jumps;
+
+            const renderFactorBadge = () => {
+                if (direction === 'right') {
+                    const zeros = factorLabel.slice(1);
+                    return (
+                        <g>
+                            <rect x="85" y="14" width="370" height="44" rx="14" fill="#fef3c7" stroke="#f59e0b" strokeWidth="2.5" />
+                            <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#78350f">
+                                Factor: <tspan fill="#0f172a">1</tspan><tspan fill="#dc2626" fontSize="16">{zeros}</tspan>  →  {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la DERECHA ➔
+                            </text>
+                            <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#92400e">
+                                {ruleText}
+                            </text>
+                        </g>
+                    );
+                }
+                return (
+                    <g>
+                        <rect x="65" y="14" width="410" height="44" rx="14" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2.5" />
+                        <text x="270" y="34" textAnchor="middle" fontSize="14.5" fontWeight="900" fill="#0c4a6e">
+                            Factor: <tspan fill="#dc2626" fontSize="16">{factorLabel}</tspan>  →  ⬅ {jumps} {jumps === 1 ? 'lugar' : 'lugares'} a la IZQUIERDA
+                        </text>
+                        <text x="270" y="51" textAnchor="middle" fontSize="11.5" fontWeight="800" fill="#0369a1">
+                            {ruleText}
+                        </text>
+                    </g>
+                );
+            };
+
+            return (
+                <div className="w-full h-full flex flex-col items-center justify-center relative">
+                    <svg viewBox="0 0 540 355" className="w-full max-h-[360px]" role="img" aria-label="Animación manual del salto de la coma decimal">
+                        {renderFactorBadge()}
+
+                        {/* Arcos de salto acumulados */}
+                        {Array.from({ length: currentJump }).map((_, idx) => {
+                            const s0 = direction === 'right' ? startSlot + idx : startSlot - idx;
+                            const s1 = direction === 'right' ? s0 + 1 : s0 - 1;
+                            const x0 = startX + s0 * cellW;
+                            const x1 = startX + s1 * cellW;
+                            const midX = (x0 + x1) / 2;
+                            const peakY = boxY - 48;
+                            const arrowDir = direction === 'right' ? 1 : -1;
+                            return (
+                                <g key={`arc-${idx}`}>
                                     <path
-                                        d={`M ${x0}${boxY - 6} Q ${midX}${peakY} ${x1}${boxY - 6}`}
+                                        d={`M ${x0} ${boxY - 6} Q ${midX} ${peakY} ${x1} ${boxY - 6}`}
                                         fill="none"
                                         stroke="#ef4444"
                                         strokeWidth="3.5"
@@ -325,7 +511,52 @@
                             const fill = d.added ? '#dbeafe' : (d.ellipsis ? '#f1f5f9' : '#ffffff');
                             const stroke = d.added ? '#2563eb' : (isFaded ? '#cbd5e1' : '#334155');
                             return (
-                                <g key={`d-${i}`} opacity={visible ? (isFaded ? 0.32 : 1) : 0.14} style={{ transition: 'opacity 0.35s ease' }}> <rect x={x + 4} y={boxY} width={cellW - 8} height={boxH} rx="12" fill={fill} stroke={stroke} strokeWidth={d.added ? '3.5' : '2.8'} strokeDasharray={d.added && !visible ? '5 4' : 'none'} /> <text x={x + cellW / 2} y={boxY + 42} textAnchor="middle" fontSize={d.ellipsis ? '22' : '30'} fontWeight="900" fill={d.added ? '#1d4ed8' : '#0f172a'} > {visible ? d.char : ''} </text> {d.added && visible && ( <text x={x + cellW / 2} y={boxY + boxH + 16} textAnchor="middle" fontSize="10" fontWeight="900" fill="#2563eb"> +0 azul </text> )} {isFaded && ( <line x1={x + 10} y1={boxY + 52} x2={x + cellW - 10} y2={boxY + 10} stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" /> )} </g> ); })}  {/* Marca fantasma de la posición inicial de la coma */} {currentJump > 0 && ( <g opacity="0.35"> <circle cx={startX + startSlot * cellW} cy={boxY + boxH - 8} r="5" fill="#94a3b8" /> <text x={startX + startSlot * cellW} y={boxY + boxH + 18} textAnchor="middle" fontSize="10" fontWeight="800" fill="#64748b">inicio</text> </g> )}  {/* COMA DECIMAL ROJA BRILLANTE EN MOVIMIENTO */} <g style={{ transform: `translateX(${commaX}px)`,
+                                <g key={`d-${i}`} opacity={visible ? (isFaded ? 0.32 : 1) : 0.14} style={{ transition: 'opacity 0.35s ease' }}>
+                                    <rect
+                                        x={x + 4}
+                                        y={boxY}
+                                        width={cellW - 8}
+                                        height={boxH}
+                                        rx="12"
+                                        fill={fill}
+                                        stroke={stroke}
+                                        strokeWidth={d.added ? '3.5' : '2.8'}
+                                        strokeDasharray={d.added && !visible ? '5 4' : 'none'}
+                                    />
+                                    <text
+                                        x={x + cellW / 2}
+                                        y={boxY + 42}
+                                        textAnchor="middle"
+                                        fontSize={d.ellipsis ? '22' : '30'}
+                                        fontWeight="900"
+                                        fill={d.added ? '#1d4ed8' : '#0f172a'}
+                                    >
+                                        {visible ? d.char : ''}
+                                    </text>
+                                    {d.added && visible && (
+                                        <text x={x + cellW / 2} y={boxY + boxH + 16} textAnchor="middle" fontSize="10" fontWeight="900" fill="#2563eb">
+                                            +0 azul
+                                        </text>
+                                    )}
+                                    {isFaded && (
+                                        <line x1={x + 10} y1={boxY + 52} x2={x + cellW - 10} y2={boxY + 10} stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+                                    )}
+                                </g>
+                            );
+                        })}
+
+                        {/* Marca fantasma de la posición inicial de la coma */}
+                        {currentJump > 0 && (
+                            <g opacity="0.35">
+                                <circle cx={startX + startSlot * cellW} cy={boxY + boxH - 8} r="5" fill="#94a3b8" />
+                                <text x={startX + startSlot * cellW} y={boxY + boxH + 18} textAnchor="middle" fontSize="10" fontWeight="800" fill="#64748b">inicio</text>
+                            </g>
+                        )}
+
+                        {/* COMA DECIMAL ROJA BRILLANTE EN MOVIMIENTO */}
+                        <g
+                            style={{
+                                transform: `translateX(${commaX}px)`,
                                 transition: 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
                                 opacity: (finished && hideCommaAtEnd) ? 0.35 : 1
                             }}
@@ -342,7 +573,7 @@
                                 {finished ? 'RESULTADO FINAL' : 'PRESIONA EL BOTÓN PARA MOVER LA COMA'}
                             </text>
                             <text x="270" y="316" textAnchor="middle" fontSize="28" fontWeight="900" fill="#065f46">
-                                {finished ? finalDisplay : `Salto ${currentJump} de${jumps}`}
+                                {finished ? finalDisplay : `Salto ${currentJump} de ${jumps}`}
                             </text>
                         </g>
                         {noteText && finished && (
@@ -518,7 +749,7 @@
                         const baseArcY = totalY + cell + 4;
                         return (
                             <g key={idx}>
-                                <path d={`M ${x0}${baseArcY} Q ${midX}${baseArcY + 34} ${x1}${baseArcY}`} fill="none" stroke="#ef4444" strokeWidth="3" className="arc-draw" />
+                                <path d={`M ${x0} ${baseArcY} Q ${midX} ${baseArcY + 34} ${x1} ${baseArcY}`} fill="none" stroke="#ef4444" strokeWidth="3" className="arc-draw" />
                                 <text x={midX} y={baseArcY + 30} textAnchor="middle" fontSize="11" fontWeight="900" fill="#dc2626">{idx + 1}°</text>
                             </g>
                         );
@@ -583,7 +814,8 @@
                         const x1 = 92 + (6 - jumpIdx) * 52 - 4;
                         const midX = (x0 + x1) / 2;
                         return (
-                            <g key={`sp-arc-${jumpIdx}`}> <path d={`M ${x0} 214 Q ${midX} 192${x1} 214`} fill="none" stroke="#ef4444" strokeWidth="2.8" className="arc-draw" />
+                            <g key={`sp-arc-${jumpIdx}`}>
+                                <path d={`M ${x0} 214 Q ${midX} 192 ${x1} 214`} fill="none" stroke="#ef4444" strokeWidth="2.8" className="arc-draw" />
                                 <text x={midX} y="206" textAnchor="middle" fontSize="10" fontWeight="900" fill="#dc2626">{jumpIdx + 1}°</text>
                             </g>
                         );
@@ -730,7 +962,18 @@
                     const cellH = Math.min(82, Math.floor(215 / rows));
                     const startX = (540 - cols * cellW) / 2;
                     return (
-                        <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label={`Compra de ${app.buyer}`}> <text x="270" y="24" textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#1e293b"> Compra de {app.buyer}: {app.qty} {app.itemName} </text> <rect x="26" y="40" width="488" height="236" rx="20" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="3" /> {Array.from({ length: app.qty }).map((_, i) => { const r = Math.floor(i / cols); const c = i \% cols; const x = startX + c * cellW + 5; const y = 52 + r * cellH; return ( <g key={i} className="svg-pop" style={{ animationDelay: `${i * 0.02}s` }}>
+                        <svg viewBox="0 0 540 355" className="w-full h-full max-h-[385px]" role="img" aria-label={`Compra de ${app.buyer}`}>
+                            <text x="270" y="24" textAnchor="middle" fontSize="15.5" fontWeight="900" fill="#1e293b">
+                                Compra de {app.buyer}: {app.qty} {app.itemName}
+                            </text>
+                            <rect x="26" y="40" width="488" height="236" rx="20" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="3" />
+                            {Array.from({ length: app.qty }).map((_, i) => {
+                                const r = Math.floor(i / cols);
+                                const c = i % cols;
+                                const x = startX + c * cellW + 5;
+                                const y = 52 + r * cellH;
+                                return (
+                                    <g key={i} className="svg-pop" style={{ animationDelay: `${i * 0.02}s` }}>
                                         <rect x={x} y={y} width={cellW - 10} height={cellH - 8} rx="11" fill={app.bg} stroke={app.color} strokeWidth="2" />
                                         <text x={x + (cellW - 10) / 2} y={y + (cellH - 8) * 0.52} textAnchor="middle" fontSize={app.qty === 24 ? '18' : '24'}>{app.emoji}</text>
                                         <text x={x + (cellW - 10) / 2} y={y + (cellH - 8) - 6} textAnchor="middle" fontSize={app.qty === 24 ? '9.5' : '11'} fontWeight="900" fill={app.color}>{app.unitPrice}</text>
@@ -1091,4 +1334,801 @@
                 steps: [
                     {
                         badge: "1. Por 0,1 (1 a la izq.)",
-                        latex: String.raw`76{\color{#ef4444},}9 \times 0{,}1 = 7{\
+                        latex: String.raw`76{\color{#ef4444},}9 \times 0{,}1 = 7{\color{#ef4444},}69`,
+                        robotSpeech: "Multiplicar por un décimo (0,1) mueve la coma roja 1 lugar hacia la izquierda: presiona el botón para ver el salto.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 2,
+                            digits: [{ char: '7' }, { char: '6' }, { char: '9' }],
+                            ruleText: '1 décimo = 1 salto a la izquierda', finalDisplay: '7,69'
+                        }
+                    },
+                    {
+                        badge: "2. Entero × 0,1",
+                        latex: String.raw`635{\color{#ef4444},} \times 0{,}1 = 63{\color{#ef4444},}5`,
+                        robotSpeech: "Todo número entero tiene una coma invisible al final (635,). Al saltar 1 lugar a la izquierda queda 63,5.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 3,
+                            digits: [{ char: '6' }, { char: '3' }, { char: '5' }],
+                            ruleText: 'La coma invisible de 635, salta 1 lugar a la izquierda', finalDisplay: '63,5'
+                        }
+                    },
+                    {
+                        badge: "3. Por 0,1 (+0 entero)",
+                        latex: String.raw`0{\color{#ef4444},}9 \times 0{,}1 = 0{\color{#ef4444},}09`,
+                        robotSpeech: "Al mover la coma 1 lugar a la izquierda pasa antes del cero; agregamos un cero entero adelante: 0,09.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,1', jumps: 1, startSlot: 2,
+                            digits: [{ char: '0', added: true }, { char: '0' }, { char: '9' }],
+                            ruleText: '1 salto a la izquierda → agregamos 0 entero', finalDisplay: '0,09'
+                        }
+                    },
+                    {
+                        badge: "4. Por 0,01 (2 a la izq.)",
+                        latex: String.raw`435{\color{#ef4444},}5 \times 0{,}01 = 4{\color{#ef4444},}355`,
+                        robotSpeech: "Un centésimo (0,01) tiene 2 cifras decimales: la coma roja salta 2 lugares hacia la izquierda → 4,355.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '4' }, { char: '3' }, { char: '5' }, { char: '5' }],
+                            ruleText: '1 centésimo = 2 saltos a la izquierda', finalDisplay: '4,355'
+                        }
+                    },
+                    {
+                        badge: "5. Por 0,01 (+0 entero)",
+                        latex: String.raw`95{\color{#ef4444},}99 \times 0{,}01 = 0{\color{#ef4444},}9599`,
+                        robotSpeech: "La coma salta 2 lugares a la izquierda (pasa el 5 y el 9). Como queda al inicio, colocamos 0 adelante: 0,9599.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '9' }, { char: '5' }, { char: '9' }, { char: '9' }],
+                            ruleText: '2 saltos a la izquierda → agregamos 0 entero', finalDisplay: '0,9599'
+                        }
+                    },
+                    {
+                        badge: "6. Por 0,01 (+ceros)",
+                        latex: String.raw`0{\color{#ef4444},}65 \times 0{,}01 = 0{\color{#ef4444},}0065`,
+                        robotSpeech: "Saltamos 2 lugares a la izquierda completando con ceros los espacios vacíos: 0,0065.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '0', added: true }, { char: '0' }, { char: '6' }, { char: '5' }],
+                            ruleText: 'Completamos con ceros hacia la izquierda', finalDisplay: '0,0065'
+                        }
+                    },
+                    {
+                        badge: "7. Por 0,01 (2 a la izq.)",
+                        latex: String.raw`189{\color{#ef4444},}9 \times 0{,}01 = 1{\color{#ef4444},}899`,
+                        robotSpeech: "La coma salta 2 lugares a la izquierda (pasa el 9 y el 8) y se ubica detrás del 1: 1,899.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '1' }, { char: '8' }, { char: '9' }, { char: '9' }],
+                            ruleText: '2 saltos a la izquierda', finalDisplay: '1,899'
+                        }
+                    },
+                    {
+                        badge: "8. Por 0,01 (+0 entero)",
+                        latex: String.raw`75{\color{#ef4444},}8 \times 0{,}01 = 0{\color{#ef4444},}758`,
+                        robotSpeech: "2 saltos a la izquierda pasan el 5 y el 7. Colocamos un cero entero delante de la coma: 0,758.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '7' }, { char: '5' }, { char: '8' }],
+                            ruleText: '2 saltos a la izquierda → agregamos 0 entero', finalDisplay: '0,758'
+                        }
+                    },
+                    {
+                        badge: "9. 0,010 = 0,01",
+                        latex: String.raw`0{\color{#ef4444},}003 \times 0{,}010 = 0{\color{#ef4444},}00003`,
+                        robotSpeech: "¡Ojo! 0,010 equivale a 0,01 (un centésimo, el cero final no cambia su valor). Por eso la coma salta 2 lugares a la izquierda: 0,00003.",
+                        graphic: {
+                            type: 'jump', direction: 'left', factorLabel: '0,010 = 0,01', jumps: 2, startSlot: 3,
+                            digits: [{ char: '0', added: true }, { char: '0', added: true }, { char: '0' }, { char: '0' }, { char: '0' }, { char: '3' }],
+                            ruleText: '0,010 es 1 centésimo → 2 saltos a la izquierda', finalDisplay: '0,00003',
+                            noteText: 'El 0 al final de 0,010 no altera el valor (equivale a 0,01).'
+                        }
+                    },
+                    {
+                        badge: "10. Caso especial",
+                        latex: String.raw`0{,}005 \times 2{,}005 \implies 5 \times 2005 = 10025 \implies \mathbf{0{\color{#ef4444},}010025}`,
+                        robotSpeech: "Caso especial: multiplicamos 5 × 2005 = 10025. Como hay 3 + 3 = 6 cifras decimales, completamos con ceros: 0,010025.",
+                        graphic: { type: 'special005' }
+                    }
+                ]
+            },
+            {
+                id: 5,
+                block: 1,
+                title: "Reto 5",
+                subtitle: "¿Cuántas cifras decimales?",
+                cardGradient: "from-emerald-500/55 to-teal-700/55",
+                badgeColor: "bg-emerald-500",
+                previewLatex: String.raw`3{,}375 \times 19{,}29 \to 3 + 2 = 5`,
+                enunciado: () => (
+                    <span>¿Cuántas cifras decimales tendrá el producto de <MathDisplay inline latex="3{,}375 \times 19{,}29" />?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Primer factor",
+                        latex: String.raw`3{,}\color{#0284c7}{375} \implies \text{tiene } \mathbf{3} \text{ cifras decimales}`,
+                        robotSpeech: "Analizamos el primer factor: después de la coma en 3,375 hay 3 cifras (3, 7 y 5)."
+                    },
+                    {
+                        badge: "2. Segundo factor",
+                        latex: String.raw`19{,}\color{#db2777}{29} \implies \text{tiene } \mathbf{2} \text{ cifras decimales}`,
+                        robotSpeech: "Analizamos el segundo factor: después de la coma en 19,29 hay 2 cifras (2 y 9)."
+                    },
+                    {
+                        badge: "3. Verificar última cifra",
+                        latex: String.raw`5 \times 9 = 45 \neq \ldots 0 \quad (\text{ninguna cifra se elimina})`,
+                        robotSpeech: "Verificamos el producto de las últimas cifras: 5 × 9 = 45. Como no termina en 0, ninguna cifra decimal desaparecerá."
+                    },
+                    {
+                        badge: "4. Propiedad y Respuesta",
+                        latex: String.raw`3 + 2 = \mathbf{5 \text{ cifras decimales}} \quad (65{,}10375)`,
+                        robotSpeech: "Sumamos las cifras decimales de ambos factores: 3 + 2 = 5 cifras decimales. ¡Comprobado: 65,10375!"
+                    }
+                ]
+            },
+            {
+                id: 6,
+                block: 2,
+                title: "Reto 6",
+                subtitle: "Chocolates de María",
+                cardGradient: "from-amber-500/55 to-orange-700/55",
+                badgeColor: "bg-amber-600",
+                previewLatex: String.raw`8 \times \text{S/ }17{,}80 = \text{S/ }142{,}40`,
+                enunciado: () => (
+                    <span>María desea comprar <strong>8 cajas de chocolates</strong> que cuestan <strong>S/17,80</strong> cada una, ¿cuánto gastará en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 8 \times \text{S/ }17{,}80`,
+                        robotSpeech: "María compra 8 cajas y cada una cuesta S/ 17,80. Debemos multiplicar 17,80 × 8."
+                    },
+                    {
+                        badge: "2. Multiplicar enteros",
+                        latex: String.raw`1\,780 \times 8 = 14\,240`,
+                        robotSpeech: "Multiplicamos como si fueran números enteros: 1 780 × 8 = 14 240."
+                    },
+                    {
+                        badge: "3. Ubicar la coma",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 142{\color{#ef4444},}40`,
+                        robotSpeech: "Como 17,80 tiene 2 cifras decimales, contamos 2 lugares desde la derecha y ubicamos la coma: 142,40."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{María gastará } \mathbf{\text{S/ }142{,}40} \text{ en total.}`,
+                        robotSpeech: "¡Listo! María gastará S/ 142,40 en total por las 8 cajas de chocolates."
+                    }
+                ]
+            },
+            {
+                id: 7,
+                block: 2,
+                title: "Reto 7",
+                subtitle: "Pantalones de Paula",
+                cardGradient: "from-indigo-500/55 to-blue-700/55",
+                badgeColor: "bg-indigo-600",
+                previewLatex: String.raw`6 \times \text{S/ }89{,}88 = \text{S/ }539{,}28`,
+                enunciado: () => (
+                    <span>Paula quiere comprar <strong>6 pantalones</strong>. Si cada pantalón cuesta <strong>S/89,88</strong>, ¿cuánto gastará Paula en la compra?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 6 \times \text{S/ }89{,}88`,
+                        robotSpeech: "Paula comprará 6 pantalones a S/ 89,88 cada uno. Planteamos la multiplicación 89,88 × 6."
+                    },
+                    {
+                        badge: "2. Multiplicar enteros",
+                        latex: String.raw`8\,988 \times 6 = 53\,928`,
+                        robotSpeech: "Multiplicamos como enteros: 8 988 × 6 = 53 928."
+                    },
+                    {
+                        badge: "3. Ubicar la coma",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 539{\color{#ef4444},}28`,
+                        robotSpeech: "89,88 tiene 2 cifras decimales. Contamos 2 lugares desde la derecha y colocamos la coma: 539,28."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{Paula gastará } \mathbf{\text{S/ }539{,}28} \text{ en la compra.}`,
+                        robotSpeech: "¡Perfecto! Paula gastará S/ 539,28 en total por los 6 pantalones."
+                    }
+                ]
+            },
+            {
+                id: 8,
+                block: 2,
+                title: "Reto 8",
+                subtitle: "Galletas de Omar",
+                cardGradient: "from-sky-500/55 to-cyan-700/55",
+                badgeColor: "bg-sky-600",
+                previewLatex: String.raw`12 \times \text{S/ }3{,}80 = \text{S/ }45{,}60`,
+                enunciado: () => (
+                    <span>Si Omar compra <strong>12 paquetes de galletas</strong> que cuestan <strong>S/ 3,80</strong> cada uno, ¿cuánto pagará Omar por dicha compra?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Pago} = 12 \times \text{S/ }3{,}80`,
+                        robotSpeech: "Omar compra 12 paquetes de galletas a S/ 3,80 cada uno. Multiplicaremos 3,80 × 12."
+                    },
+                    {
+                        badge: "2. Productos parciales",
+                        latex: String.raw`380 \times 2 = 760 \quad;\quad 380 \times 10 = 3\,800`,
+                        robotSpeech: "Calculamos los productos parciales como enteros: 380 × 2 = 760 y 380 × 10 = 3 800."
+                    },
+                    {
+                        badge: "3. Sumar parciales",
+                        latex: String.raw`760 + 3\,800 = 4\,560`,
+                        robotSpeech: "Sumamos ambos productos parciales: 760 + 3 800 = 4 560."
+                    },
+                    {
+                        badge: "4. Ubicar 2 decimales",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 45{\color{#ef4444},}60`,
+                        robotSpeech: "Como 3,80 tiene 2 cifras decimales, contamos 2 lugares desde la derecha: 45,60."
+                    },
+                    {
+                        badge: "5. Respuesta",
+                        latex: String.raw`\text{Omar pagará } \mathbf{\text{S/ }45{,}60} \text{ por la compra.}`,
+                        robotSpeech: "¡Excelente! Omar pagará S/ 45,60 por los 12 paquetes de galletas."
+                    }
+                ]
+            },
+            {
+                id: 9,
+                block: 2,
+                title: "Reto 9",
+                subtitle: "Bombones de Javier",
+                cardGradient: "from-pink-500/55 to-rose-700/55",
+                badgeColor: "bg-pink-600",
+                previewLatex: String.raw`24 \times \text{S/ }17{,}89 = \text{S/ }429{,}36`,
+                enunciado: () => (
+                    <span>Javier compra <strong>24 cajas de bombones</strong> que cuestan <strong>S/ 17,89</strong> cada una. ¿Cuánto gasta Javier en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Datos del problema",
+                        latex: String.raw`\text{Gasto} = 24 \times \text{S/ }17{,}89`,
+                        robotSpeech: "Javier compra 24 cajas de bombones a S/ 17,89 cada una. Vamos a multiplicar 17,89 × 24."
+                    },
+                    {
+                        badge: "2. Productos parciales",
+                        latex: String.raw`1\,789 \times 4 = 7\,156 \quad;\quad 1\,789 \times 20 = 35\,780`,
+                        robotSpeech: "Obtenemos los productos parciales: 1 789 × 4 = 7 156 y 1 789 × 20 = 35 780."
+                    },
+                    {
+                        badge: "3. Sumar parciales",
+                        latex: String.raw`7\,156 + 35\,780 = 42\,936`,
+                        robotSpeech: "Sumamos ambos parciales ordenadamente: 7 156 + 35 780 = 42 936."
+                    },
+                    {
+                        badge: "4. Ubicar 2 decimales",
+                        latex: String.raw`2 \text{ cifras decimales} \implies 429{\color{#ef4444},}36`,
+                        robotSpeech: "Como 17,89 tiene 2 cifras decimales, contamos 2 lugares desde la derecha: 429,36."
+                    },
+                    {
+                        badge: "5. Respuesta",
+                        latex: String.raw`\text{Javier gasta } \mathbf{\text{S/ }429{,}36} \text{ en total.}`,
+                        robotSpeech: "¡Muy bien! Javier gasta S/ 429,36 en total por las 24 cajas de bombones."
+                    }
+                ]
+            },
+            {
+                id: 10,
+                block: 2,
+                title: "Reto 10",
+                subtitle: "Compras de Sofía",
+                cardGradient: "from-fuchsia-500/55 to-purple-700/55",
+                badgeColor: "bg-fuchsia-600",
+                previewLatex: String.raw`175{,}40 + 85{,}90 + 41{,}70 = \text{S/ }303{,}00`,
+                enunciado: () => (
+                    <span>Si Sofía compra <strong>4 blusas</strong> a S/43,85 cada una, <strong>un par de zapatos</strong> a S/85,90 y <strong>3 pañoletas</strong> a S/13,90 cada una; ¿cuánto pagará Sofía en total?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Costo de 4 blusas",
+                        latex: String.raw`43{,}85 \times 4 = \text{S/ }175{,}40`,
+                        robotSpeech: "Calculamos primero el subtotal de las 4 blusas: 43,85 × 4 = S/ 175,40."
+                    },
+                    {
+                        badge: "2. Par de zapatos",
+                        latex: String.raw`85{,}90 \times 1 = \text{S/ }85{,}90`,
+                        robotSpeech: "Registramos el costo del par de zapatos en nuestra boleta: S/ 85,90."
+                    },
+                    {
+                        badge: "3. Costo de 3 pañoletas",
+                        latex: String.raw`13{,}90 \times 3 = \text{S/ }41{,}70`,
+                        robotSpeech: "Calculamos el subtotal de las 3 pañoletas: 13,90 × 3 = S/ 41,70."
+                    },
+                    {
+                        badge: "4. Suma total alineada",
+                        latex: String.raw`175{,}40 + 85{,}90 + 41{,}70 = \mathbf{\text{S/ }303{,}00}`,
+                        robotSpeech: "¡Alineamos todas las comas decimales en la columna roja y sumamos! Sofía pagará S/ 303,00 en total."
+                    }
+                ]
+            },
+            {
+                id: 11,
+                block: 2,
+                title: "Reto 11",
+                subtitle: "Artefactos de Lucía",
+                cardGradient: "from-teal-500/55 to-emerald-700/55",
+                badgeColor: "bg-teal-600",
+                previewLatex: String.raw`5\,383{,}96 + 2\,996{,}70 = \text{S/ }8\,380{,}66`,
+                enunciado: () => (
+                    <span>Lucía desea comprar <strong>4 televisores</strong> a S/1 345,99 y <strong>3 tabletas</strong> a S/998,9. ¿Cuánto gastará Lucía si compra los 7 artefactos?</span>
+                ),
+                steps: [
+                    {
+                        badge: "1. Costo de 4 televisores",
+                        latex: String.raw`1\,345{,}99 \times 4 = \text{S/ }5\,383{,}96`,
+                        robotSpeech: "Multiplicamos el precio de cada televisor por 4: 1 345,99 × 4 = S/ 5 383,96."
+                    },
+                    {
+                        badge: "2. Costo de 3 tabletas",
+                        latex: String.raw`998{,}9 \times 3 = \text{S/ }2\,996{,}7{\color{#d97706}0}`,
+                        robotSpeech: "Multiplicamos 998,9 × 3 = 2 996,7. Agregamos un cero en los centésimos (2 996,70) para alinear con las comas."
+                    },
+                    {
+                        badge: "3. Sumar subtotales",
+                        latex: String.raw`5\,383{,}96 + 2\,996{,}70 = \text{S/ }8\,380{,}66`,
+                        robotSpeech: "Sumamos ambos subtotales alineando la coma decimal en la columna roja: 5 383,96 + 2 996,70 = S/ 8 380,66."
+                    },
+                    {
+                        badge: "4. Respuesta",
+                        latex: String.raw`\text{Lucía gastará } \mathbf{\text{S/ }8\,380{,}66} \text{ por los 7 artefactos.}`,
+                        robotSpeech: "¡Misión cumplida! Lucía gastará S/ 8 380,66 si compra los 7 artefactos."
+                    }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // 10. SELECTOR DE VISUALIZADOR PARA EL PANEL DERECHO
+        // =========================================================================
+        const RightPanelGraphic = memo(({ exercise, step }) => {
+            const curStep = exercise.steps[step];
+            if (curStep.graphic && curStep.graphic.type === 'jump') {
+                return <CommaJumpVisualizer key={`jump-${exercise.id}-${step}`} config={curStep.graphic} />;
+            }
+            if (curStep.graphic && curStep.graphic.type === 'special005') {
+                return <SpecialProductVisualizer />;
+            }
+            if (exercise.verticalConfig) {
+                return <VerticalMultVisualizer config={exercise.verticalConfig} step={step} />;
+            }
+            if (exercise.id === 5) {
+                return <DecimalCountVisualizer step={step} />;
+            }
+            return <ShoppingVisualizer exerciseId={exercise.id} step={step} />;
+        });
+
+        // =========================================================================
+        // 11. COMPONENTES AMBIENTALES: FONDO FLOTANTE, CONFETI Y ROBOT ASISTENTE
+        // =========================================================================
+        const FloatingBackground = memo(() => {
+            const symbols = ['×', ',', '0', '10', '100', '0,1', 'S/', '=', '+'];
+            const elements = Array.from({ length: 28 }).map((_, i) => ({
+                id: i,
+                symbol: symbols[i % symbols.length],
+                left: `${(i * 3.6 + 2) % 96}%`,
+                animationDuration: `${11 + (i % 7) * 2.1}s`,
+                animationDelay: `-${(i * 1.4) % 20}s`,
+                fontSize: `${1.25 + (i % 4) * 0.55}rem`,
+                opacity: 0.08 + (i % 3) * 0.04
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    {elements.map((el) => (
+                        <div
+                            key={el.id}
+                            className="absolute text-white font-black animate-floatUp select-none drop-shadow-lg"
+                            style={{
+                                left: el.left,
+                                bottom: '-15%',
+                                fontSize: el.fontSize,
+                                opacity: el.opacity,
+                                animationDuration: el.animationDuration,
+                                animationDelay: el.animationDelay
+                            }}
+                        >
+                            {el.symbol}
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        const Confetti = memo(() => {
+            const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa', '#fb923c'];
+            const pieces = Array.from({ length: 110 }).map((_, i) => ({
+                id: i,
+                left: `${50 + (Math.random() * 20 - 10)}%`,
+                color: colors[i % colors.length],
+                tx: `${(Math.random() - 0.5) * 820}px`,
+                ty: `${(Math.random() - 1) * 760}px`,
+                rot: `${Math.random() * 720}deg`,
+                delay: `${Math.random() * 0.2}s`
+            }));
+            return (
+                <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden">
+                    {pieces.map((p) => (
+                        <div
+                            key={p.id}
+                            className="absolute w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full animate-confettiExplosion shadow-sm"
+                            style={{
+                                backgroundColor: p.color,
+                                '--tx': p.tx,
+                                '--ty': p.ty,
+                                '--rot': p.rot,
+                                animationDelay: p.delay,
+                                left: p.left,
+                                top: '50%'
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        });
+
+        const RobotAssistant = ({ step, maxSteps }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1 && maxSteps > 1;
+
+            const getContainerAnim = () => {
+                if (isFinalStep) return 'animate-robotJump';
+                if (isThinking) return 'animate-robotThinkTilt';
+                return 'animate-robotFloat';
+            };
+            const getArmLAnim = () => {
+                if (isFinalStep) return 'rotate-[150deg] animate-pulse';
+                if (step > 0) return 'animate-robotTalkArmL';
+                return 'rotate-45';
+            };
+            const getArmRAnim = () => {
+                if (isFinalStep) return '-rotate-[150deg] animate-pulse';
+                if (step > 0) return 'animate-robotTalkArmR';
+                return '-rotate-45';
+            };
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div><div className="w-2.5 h-1.5 bg-emerald-400 rounded-t-full mt-0.5"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-1.5"><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1"><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-4 h-2.5 bg-rose-400 rounded-b-full mt-1"></div>;
+                if (step === 0) return <div className="w-3 h-1 bg-cyan-300 rounded-full mt-1"></div>;
+                return <div className="w-2.5 h-2.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-xl select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_10px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-3 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-white to-slate-200 rounded-xl border-[2.5px] border-indigo-400 shadow-xl flex flex-col items-center justify-center p-1">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1 shadow-inner border-[1.5px] border-indigo-500">
+                            {getEyes()}
+                            {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-1.5 w-2 h-4 bg-slate-200 border-[2px] border-indigo-400 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        // =========================================================================
+        // 12. APLICACIÓN PRINCIPAL
+        // =========================================================================
+        function App() {
+            const [view, setView] = useState('home');
+            const [exIdx, setExIdx] = useState(0);
+            const [step, setStep] = useState(0);
+            const scrollContainerRef = useRef(null);
+
+            const curEx = EXERCISES[exIdx];
+            const maxSteps = curEx.steps.length - 1;
+            const curStepData = curEx.steps[step];
+            const EnunciadoText = curEx.enunciado;
+
+            const startExercise = (index) => {
+                setExIdx(index);
+                setStep(0);
+                setView('lab');
+            };
+
+            const nextStep = () => {
+                if (step < maxSteps) {
+                    setStep(step + 1);
+                } else {
+                    if (exIdx < EXERCISES.length - 1) {
+                        setExIdx(exIdx + 1);
+                        setStep(0);
+                    } else {
+                        setView('home');
+                    }
+                }
+            };
+
+            const prevStep = () => {
+                if (step > 0) {
+                    setStep(step - 1);
+                }
+            };
+
+            useEffect(() => {
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                }
+            }, [step, exIdx, view]);
+
+            // ------------------------- PORTADA (2 BLOQUES, 11 RETOS) -------------------------
+            if (view === 'home') {
+                const block1 = EXERCISES.filter(e => e.block === 1);
+                const block2 = EXERCISES.filter(e => e.block === 2);
+
+                const renderCard = (ex) => {
+                    const idx = EXERCISES.findIndex(item => item.id === ex.id);
+                    return (
+                        <button
+                            key={ex.id}
+                            onClick={() => startExercise(idx)}
+                            className="group text-left p-4 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border-[3px] border-white/35 hover:border-yellow-300 hover:-translate-y-1.5 hover:shadow-[0_16px_30px_rgba(0,0,0,0.38)] transition-all flex flex-col relative overflow-hidden shadow-lg min-h-[10.5rem]"
+                        >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${ex.cardGradient} opacity-85 group-hover:opacity-100 transition-opacity`}></div>
+                            <div className="relative z-10 flex-1 flex flex-col">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`${ex.badgeColor} text-white text-xs font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm`}>
+                                        {ex.title}
+                                    </span>
+                                    <span className="text-white/95 text-xs font-extrabold bg-black/25 px-2.5 py-0.5 rounded-full">
+                                        {ex.steps.length} pasos
+                                    </span>
+                                </div>
+                                <div className="flex-1 my-1.5 bg-white/95 rounded-xl px-2.5 py-2 text-slate-900 shadow-inner flex items-center justify-center border border-white/60 pointer-events-none math-card">
+                                    <MathDisplay latex={ex.previewLatex} align="center" />
+                                </div>
+                                <div className="text-white text-sm sm:text-base font-black text-center mt-1.5 drop-shadow-md">
+                                    {ex.subtitle}
+                                </div>
+                            </div>
+                        </button>
+                    );
+                };
+
+                return (
+                    <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#1e3a8a] via-[#4338ca] to-[#be185d] flex flex-col items-center justify-start p-4 sm:p-6 relative font-fun overflow-y-auto scrollbar-hide">
+                        <FloatingBackground />
+
+                        {/* Barra superior */}
+                        <div className="w-[96%] max-w-[1400px] z-20 flex items-center justify-between mb-5 mt-1">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-yellow-300 bg-white/15 backdrop-blur-md text-yellow-300 font-black tracking-wider uppercase shadow-md text-xs sm:text-base">
+                                <Rocket className="w-5 h-5 text-yellow-300" /> TuProfe20 Lab
+                            </div>
+                        </div>
+
+                        {/* Encabezado de portada */}
+                        <div className="relative z-10 text-center w-[96%] max-w-[1400px] flex flex-col items-center pb-12">
+                            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/15 border border-white/30 text-cyan-200 font-black text-xs sm:text-sm uppercase tracking-widest mb-3 shadow-sm">
+                                Aritmética • Multiplicación de Números Decimales
+                            </div>
+                            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white mb-3 drop-shadow-[0_5px_0_rgba(0,0,0,0.3)] tracking-tight leading-tight uppercase">
+                                MULTIPLICACIÓN DE <span className="text-yellow-300 underline decoration-wavy decoration-cyan-400 underline-offset-8">DECIMALES Y APLICACIONES</span>
+                            </h1>
+                            <p className="text-sm sm:text-lg lg:text-xl text-purple-100 mb-8 font-bold max-w-3xl leading-relaxed">
+                                Domina el salto de la coma decimal, la multiplicación vertical y problemas de compras paso a paso ✨🤖
+                            </p>
+
+                            {/* BLOQUE 1 */}
+                            <div className="w-full mb-8">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="px-4 py-1.5 rounded-full bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-widest shadow-md">
+                                        Bloque 1 • Técnicas y Propiedades (Retos 1 al 5)
+                                    </span>
+                                    <div className="flex-1 h-[2px] bg-white/25 rounded-full"></div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                    {block1.map(renderCard)}
+                                </div>
+                            </div>
+
+                            {/* BLOQUE 2 */}
+                            <div className="w-full">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="px-4 py-1.5 rounded-full bg-yellow-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-widest shadow-md">
+                                        Bloque 2 • Problemas de Aplicación (Retos 6 al 11)
+                                    </span>
+                                    <div className="flex-1 h-[2px] bg-white/25 rounded-full"></div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {block2.map(renderCard)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ------------------------- VISTA LABORATORIO -------------------------
+            return (
+                <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#312e81] to-[#831843] text-slate-800 flex flex-col p-2 sm:p-3.5 relative font-fun overflow-hidden">
+                    <FloatingBackground />
+                    {step === maxSteps && <Confetti />}
+
+                    {/* Barra superior */}
+                    <div className="shrink-0 relative z-10 w-[98%] max-w-[1440px] mx-auto flex justify-between items-center mb-2.5 px-1 gap-2">
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setView('home')}
+                                className="flex items-center justify-center px-3.5 py-2 rounded-[1rem] bg-white/10 border-[2.5px] border-white/30 backdrop-blur-md text-white font-black hover:bg-white/20 transition-all shadow-lg active:scale-95 text-xs sm:text-sm"
+                            >
+                                <Home className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Portada</span>
+                            </button>
+                            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-yellow-300/40 text-yellow-300 font-black text-xs uppercase tracking-wider">
+                                <Rocket className="w-4 h-4" /> TuProfe20 Lab
+                            </div>
+                        </div>
+
+                        {/* Selector numérico 1 al 11 */}
+                        <div className="flex items-center gap-1 sm:gap-1.5 bg-black/35 p-1.5 rounded-[1rem] border-2 border-white/20 backdrop-blur-md shadow-lg overflow-x-auto scrollbar-hide max-w-[75vw]">
+                            {EXERCISES.map((ex, i) => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => startExercise(i)}
+                                    className={`shrink-0 w-7 h-7 sm:w-9 sm:h-9 rounded-[0.7rem] font-black text-xs sm:text-sm transition-all ${
+                                        exIdx === i
+                                            ? 'bg-yellow-400 text-slate-900 scale-110 shadow-[0_0_12px_rgba(250,204,21,0.75)]'
+                                            : 'text-white hover:bg-white/20'
+                                    }`}
+                                >
+                                    {ex.id}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="w-10 hidden sm:block"></div>
+                    </div>
+
+                    {/* Pizarra principal */}
+                    <div className="flex-1 min-h-0 relative z-10 w-[98%] max-w-[1440px] mx-auto bg-white rounded-[1.8rem] sm:rounded-[2.2rem] border-[5px] sm:border-[7px] border-slate-100 shadow-[0_25px_55px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+
+                        {/* Encabezado oscuro con enunciado */}
+                        <div className="shrink-0 bg-slate-900 border-b-[4px] border-cyan-500 px-4 py-2.5 sm:px-6 sm:py-3 flex flex-col justify-center relative shadow-md z-20">
+                            <div className="flex justify-between items-center w-full max-w-6xl mx-auto mb-1">
+                                <span className="bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm px-3 py-0.5 rounded-md uppercase tracking-widest shadow-sm">
+                                    {curEx.title}
+                                </span>
+                                <span className="text-yellow-300 font-extrabold text-xs sm:text-sm bg-white/10 px-3 py-0.5 rounded-md">
+                                    {curEx.subtitle}
+                                </span>
+                            </div>
+                            <div className="text-white font-bold text-sm sm:text-lg md:text-xl text-center w-full max-w-5xl mx-auto leading-snug math-enunciado">
+                                <EnunciadoText />
+                            </div>
+                        </div>
+
+                        {/* Área dividida 50% / 50% */}
+                        <div className="flex-1 flex flex-col md:flex-row bg-slate-50 overflow-hidden relative">
+
+                            {/* PANEL IZQUIERDO: DESARROLLO AMPLIADO PARA CLASE VIRTUAL */}
+                            <div
+                                ref={scrollContainerRef}
+                                className="w-full md:w-1/2 flex-1 px-5 py-4 sm:px-7 sm:py-5 overflow-y-auto scrollbar-hide flex flex-col gap-4 pb-20 relative z-10 border-b-2 md:border-b-0 md:border-r-2 border-slate-200/70"
+                            >
+                                <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#0f172a_1.5px,transparent_1.5px)] [background-size:20px_20px] pointer-events-none"></div>
+
+                                <div className="relative z-10 flex items-center justify-between border-b border-slate-200 pb-2">
+                                    <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-indigo-600">
+                                        Desarrollo Paso a Paso
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-extrabold text-slate-400">
+                                        {curEx.block === 1 ? 'Técnicas Decimales' : 'Problema de Aplicación'}
+                                    </span>
+                                </div>
+
+                                {curEx.steps.slice(0, step + 1).map((s, idx) => {
+                                    const isCurrent = idx === step;
+                                    const isFinal = isCurrent && step === maxSteps;
+                                    return (
+                                        <div
+                                            key={`${exIdx}-${idx}`}
+                                            className={`relative z-10 pl-4 py-2 transition-all duration-300 border-l-[5px] border-b border-slate-200/60 last:border-b-0 ${
+                                                isFinal
+                                                    ? 'border-l-amber-400 animate-finalGlow rounded-r-xl pr-3 opacity-100 animate-slideInRight'
+                                                    : isCurrent
+                                                        ? 'border-l-cyan-500 opacity-100 animate-slideInRight'
+                                                        : 'border-l-slate-300 opacity-60'
+                                            }`}
+                                        >
+                                            <div className="mb-1.5 flex items-center gap-2">
+                                                <span
+                                                    className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-black text-xs sm:text-sm tracking-wide ${
+                                                        isFinal
+                                                            ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow-sm'
+                                                            : isCurrent
+                                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm'
+                                                                : 'bg-slate-200 text-slate-600'
+                                                    }`}
+                                                >
+                                                    {isCurrent && <Sparkles className="w-3.5 h-3.5" />}
+                                                    {s.badge}
+                                                </span>
+                                            </div>
+                                            <div className={`py-1 ${isFinal ? 'math-final' : isCurrent ? 'math-current' : 'math-history'}`}>
+                                                <MathDisplay latex={s.latex} align="left" />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* PANEL DERECHO: ESQUEMA GRÁFICO REACTIVO */}
+                            <div className="w-full md:w-1/2 flex-1 bg-white/85 p-3 sm:p-5 flex flex-col items-center justify-center relative z-10 pointer-events-none">
+                                <h3 className="absolute top-3 left-4 font-black text-slate-400 uppercase tracking-widest text-[11px] sm:text-xs flex items-center gap-1.5 z-20">
+                                    <Shapes className="w-4 h-4 text-cyan-500" /> Esquema Interactivo
+                                </h3>
+                                <div className="w-full h-full flex items-center justify-center pt-5 pointer-events-auto">
+                                    <RightPanelGraphic exercise={curEx} step={step} />
+                                </div>
+                            </div>
+
+                            {/* Pizarra superpuesta */}
+                            <DrawingCanvas />
+                        </div>
+
+                        {/* Barra del Robot Asistente */}
+                        <div className="shrink-0 bg-white w-full px-4 py-2 sm:px-6 sm:py-2.5 flex items-center gap-3 sm:gap-5 border-t-[3px] border-slate-100 z-30 relative shadow-[0_-8px_18px_rgba(0,0,0,0.04)]">
+                            <div className="shrink-0 absolute -top-9 sm:relative sm:top-0 left-3 sm:left-0 drop-shadow-xl z-50">
+                                <RobotAssistant step={step} maxSteps={maxSteps} />
+                            </div>
+                            <div className="flex-1 text-xs sm:text-sm md:text-base font-bold text-slate-700 leading-snug bg-blue-50/90 px-3 py-2 sm:px-4 sm:py-2.5 rounded-[1rem] border-2 border-blue-100 min-h-[2.8rem] flex items-center shadow-sm ml-[3.4rem] sm:ml-0">
+                                <div key={`speech-${exIdx}-${step}`} className="animate-slideInRight w-full">
+                                    {curStepData.robotSpeech}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Controles inferiores */}
+                        <div className="shrink-0 bg-gradient-to-b from-[#e0e7ff] to-[#c7d2fe] p-2 sm:p-2.5 w-full flex flex-col items-center border-t-[3px] border-white z-40">
+                            <div className="flex justify-center items-stretch w-full max-w-4xl gap-2 sm:gap-3 h-9 sm:h-10">
+                                <button
+                                    onClick={prevStep}
+                                    disabled={step === 0}
+                                    className="flex-[0.8] bg-[#a5b4fc] border-b-[4px] border-[#6366f1] text-[#312e81] rounded-l-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] disabled:opacity-40 transition-all hover:bg-[#c7d2fe]"
+                                >
+                                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                    <span className="hidden sm:inline">Atrás</span>
+                                </button>
+                                <div className="bg-[#6366f1] text-white font-black px-3 sm:px-5 text-xs sm:text-sm flex items-center justify-center border-b-[4px] border-[#4338ca] shadow-inner whitespace-nowrap min-w-[4.5rem]">
+                                    Paso {step + 1}/{maxSteps + 1}
+                                </div>
+                                <button
+                                    onClick={nextStep}
+                                    className={`flex-[2] border-b-[4px] text-white rounded-r-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] transition-all shadow-sm hover:brightness-110 ${
+                                        step === maxSteps
+                                            ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse'
+                                            : 'bg-gradient-to-r from-[#06b6d4] to-[#0284c7] border-[#0369a1]'
+                                    }`}
+                                >
+                                    <span>
+                                        {step < maxSteps
+                                            ? '¡Siguiente Paso!'
+                                            : exIdx < EXERCISES.length - 1
+                                                ? `Siguiente Reto (${curEx.id + 1})`
+                                                : '¡Volver a Portada!'}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
